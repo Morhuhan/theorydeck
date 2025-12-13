@@ -1,41 +1,45 @@
-import { TheoryWithDetails } from '@/types';
-import { Badge } from '@/components/ui/badge';
-import { formatRelativeTime } from '@/lib/utils/formatting';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { TagBadge } from '@/components/shared/TagBadge';
+// components/theory/TheoryHeader.tsx
+"use client";
+
+import { Badge } from "@/components/ui/badge";
 
 interface TheoryHeaderProps {
-  theory: TheoryWithDetails;
+  title: string;
+  realm?: string;
+  topic?: string;
+  tags?: string[];
+  status: string;
 }
 
-export function TheoryHeader({ theory }: TheoryHeaderProps) {
+export function TheoryHeader({ title, realm, topic, tags = [], status }: TheoryHeaderProps) {
+  const statusColors: Record<string, string> = {
+    ACTIVE: "bg-green-500/10 text-green-500 border-green-500/20",
+    DRAFT: "bg-gray-500/10 text-gray-500 border-gray-500/20",
+    ARCHIVED: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    RESOLVED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    MODERATED: "bg-red-500/10 text-red-500 border-red-500/20",
+  };
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-4">
-        <StatusBadge status={theory.status} />
-        {theory.realm && <TagBadge text={theory.realm} variant="realm" />}
-        {theory.topic && <TagBadge text={theory.topic} variant="topic" />}
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {realm && <span>{realm}</span>}
+        {realm && topic && <span>/</span>}
+        {topic && <span>{topic}</span>}
       </div>
-
-      <h1 className="text-4xl font-bold mb-4">{theory.title}</h1>
-
-      <div className="flex items-center gap-4 text-sm text-gray-600">
-        <span>
-          By <span className="font-medium">{theory.author.name || 'Anonymous'}</span>
-        </span>
-        <span>•</span>
-        <span>{formatRelativeTime(theory.createdAt)}</span>
+      
+      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="outline" className={statusColors[status] || statusColors.ACTIVE}>
+          {status}
+        </Badge>
+        {tags.map((tag) => (
+          <Badge key={tag} variant="secondary">
+            {tag}
+          </Badge>
+        ))}
       </div>
-
-      {theory.tags && theory.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {theory.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

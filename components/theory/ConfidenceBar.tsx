@@ -1,41 +1,44 @@
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { ConfidenceScore, getConfidenceLabel, getConfidenceColor } from '@/lib/utils/confidence';
+// components/theory/ConfidenceBar.tsx
+"use client";
+
+import { Progress } from "@/components/ui/progress";
 
 interface ConfidenceBarProps {
-  confidence: ConfidenceScore;
+  forScore: number;
+  againstScore: number;
 }
 
-export function ConfidenceBar({ confidence }: ConfidenceBarProps) {
-  const label = getConfidenceLabel(confidence.confidence);
-  const colorClass = getConfidenceColor(confidence.confidence);
+export function ConfidenceBar({ forScore, againstScore }: ConfidenceBarProps) {
+  const total = forScore + againstScore;
+  const forPercent = total > 0 ? Math.round((forScore / total) * 100) : 50;
+  const againstPercent = total > 0 ? 100 - forPercent : 50;
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold">Community Confidence</h3>
-        <div className="text-right">
-          <div className="text-2xl font-bold">{confidence.confidence}%</div>
-          <div className="text-sm text-gray-600">{label}</div>
+    <div className="rounded-lg border bg-card p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold">Уверенность сообщества</h3>
+        <span className="text-sm text-muted-foreground">
+          {total} голосов
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-green-500 font-medium">За: {forPercent}%</span>
+          <span className="text-red-500 font-medium">Против: {againstPercent}%</span>
+        </div>
+        
+        <div className="relative h-4 rounded-full overflow-hidden bg-red-500/20">
+          <div 
+            className="absolute inset-y-0 left-0 bg-green-500 transition-all duration-500"
+            style={{ width: `${forPercent}%` }}
+          />
         </div>
       </div>
 
-      <Progress value={confidence.confidence} className="h-3 mb-4" />
-
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div className="flex justify-between">
-          <span className="text-gray-600">For:</span>
-          <span className="font-semibold text-green-600">
-            {confidence.forCards} cards ({Math.round(confidence.forScore)})
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600">Against:</span>
-          <span className="font-semibold text-red-600">
-            {confidence.againstCards} cards ({Math.round(confidence.againstScore)})
-          </span>
-        </div>
-      </div>
-    </Card>
+      <p className="text-xs text-muted-foreground text-center">
+        На основе силы доказательств в карточках
+      </p>
+    </div>
   );
 }

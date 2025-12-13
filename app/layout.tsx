@@ -1,18 +1,31 @@
-import Link from 'next/link';
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout";
 
-export default function AuthLayout({
+const inter = Inter({ subsets: ["latin", "cyrillic"] });
+
+export const metadata: Metadata = {
+  title: "TheoryDeck - Доказательные дискуссии",
+  description: "Платформа для структурированного обсуждения теорий с доказательствами",
+};
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-4">
-        <Link href="/" className="text-2xl font-bold">
-          TheoryDeck
-        </Link>
-      </div>
-      {children}
-    </div>
+    <html lang="ru">
+      <body className={`${inter.className} min-h-screen flex flex-col bg-background antialiased`}>
+        <Navbar />
+        <main className="flex-1 container">
+          {children}
+        </main>
+        <Footer />
+      </body>
+    </html>
   );
 }
