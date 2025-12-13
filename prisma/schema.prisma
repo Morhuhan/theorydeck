@@ -11,18 +11,14 @@ model User {
   email         String    @unique
   name          String?
   password      String?
-  image         String?
   emailVerified DateTime?
-  role          UserRole  @default(USER)
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  // NextAuth
   accounts      Account[]
   sessions      Session[]
   
-  // Relations
   theories      Theory[]
   evidenceCards EvidenceCard[]
   votes         Vote[]
@@ -30,12 +26,6 @@ model User {
   reports       Report[]
   
   @@index([email])
-}
-
-enum UserRole {
-  USER
-  MODERATOR
-  ADMIN
 }
 
 model Account {

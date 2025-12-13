@@ -3,7 +3,10 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Layers, Plus, User } from "lucide-react";
+import { UserMenu } from "@/components/auth/UserMenu";
+import { Layers, Plus } from "lucide-react";
+
+const mockUser = null;
 
 export function Navbar() {
   return (
@@ -18,19 +21,16 @@ export function Navbar() {
           <Link href="/explore" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Обзор
           </Link>
-          <Link href="/trending" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            В тренде
-          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Новая теория
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/theory/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Новая теория
+            </Link>
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-4 w-4" />
-          </Button>
+          <UserMenu user={mockUser} />
         </div>
       </div>
     </header>
