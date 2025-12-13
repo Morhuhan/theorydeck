@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,226 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  name     String?
-  email    String  @unique
-  password String
-  posts    Post[]
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  role          UserRole  @default(USER)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // NextAuth
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relations
+  theories      Theory[]
+  evidenceCards EvidenceCard[]
+  votes         Vote[]
+  comments      Comment[]
+  reports       Report[]
+  
+  @@index([email])
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Theory {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  claim       String        @db.Text
+  tldr        String        @db.Text
+  
+  status      TheoryStatus  @default(ACTIVE)
+  
+  realm       String?
+  topic       String?
+  tags        String[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id])
+  
+  evidenceCards EvidenceCard[]
+  comments      Comment[]
+  reports       Report[]
+  
+  @@index([slug])
+  @@index([status])
+  @@index([realm, topic])
+}
+
+enum TheoryStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  RESOLVED
+  MODERATED
+}
+
+model EvidenceCard {
+  id          String          @id @default(cuid())
+  
+  content     String          @db.Text
+  source      String?
+  sourceTitle String?
+  context     String?         @db.Text
+  
+  stance      Stance
+  status      CardStatus      @default(ACTIVE)
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  theoryId    String
+  theory      Theory          @relation(fields: [theoryId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User            @relation(fields: [authorId], references: [id])
+  
+  votes       Vote[]
+  comments    Comment[]
+  reports     Report[]
+  
+  @@index([theoryId, stance, status])
+  @@index([authorId])
+}
+
+enum Stance {
+  FOR
+  AGAINST
+}
+
+enum CardStatus {
+  ACTIVE
+  HIDDEN
+  DELETED
+  FLAGGED
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  strength  Int      @default(5)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  cardId    String
+  card      EvidenceCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, cardId])
+  @@index([cardId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  theoryId  String?
+  theory    Theory?  @relation(fields: [theoryId], references: [id], onDelete: Cascade)
+  
+  cardId    String?
+  card      EvidenceCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
+  @@index([theoryId])
+  @@index([cardId])
+  @@index([parentId])
+}
+
+model Report {
+  id        String      @id @default(cuid())
+  reason    ReportReason
+  details   String?     @db.Text
+  
+  status    ReportStatus @default(PENDING)
+  
+  createdAt DateTime    @default(now())
+  resolvedAt DateTime?
+  
+  reporterId String
+  reporter   User       @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  
+  theoryId   String?
+  theory     Theory?    @relation(fields: [theoryId], references: [id], onDelete: Cascade)
+  
+  cardId     String?
+  card       EvidenceCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([theoryId])
+  @@index([cardId])
+}
+
+enum ReportReason {
+  SPAM
+  MISINFORMATION
+  INAPPROPRIATE
+  SPOILER
+  LEAK
+  DUPLICATE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
 }

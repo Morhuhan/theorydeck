@@ -1,166 +1,248 @@
-import { PrismaPg } from "@prisma/adapter-pg"
+import 'dotenv/config';
 import { PrismaClient } from "@prisma/client";
+import { 
+  UserRole, 
+  TheoryStatus, 
+  Stance, 
+  CardStatus 
+} from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import bcrypt from 'bcryptjs';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+if (!process.env.DIRECT_URL) {
+  throw new Error('DIRECT_URL environment variable is not set. Please check your .env file.');
+}
+
+const dbUrl = process.env.DIRECT_URL;
+
+const match = dbUrl.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+?)(\?|$)/);
+
+if (!match) {
+  throw new Error('Invalid DIRECT_URL format');
+}
+
+const [, user, password, host, port, database] = match;
+
+const pool = new Pool({
+  host,
+  port: parseInt(port),
+  database: database.split('?')[0],
+  user,
+  password,
+  ssl: { rejectUnauthorized: false },
+});
+
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  // Create 5 users with hashed passwords
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        email: 'alice@example.com',
-        name: 'Alice',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'bob@example.com',
-        name: 'Bob',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'charlie@example.com',
-        name: 'Charlie',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'diana@example.com',
-        name: 'Diana',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'edward@example.com',
-        name: 'Edward',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-  ]);
+  console.log('🌱 Starting seed...');
 
-  const userIdMapping = {
-    alice: users[0].id,
-    bob: users[1].id,
-    charlie: users[2].id,
-    diana: users[3].id,
-    edward: users[4].id,
-  };
+  await prisma.report.deleteMany();
+  await prisma.vote.deleteMany();
+  await prisma.comment.deleteMany();
+  await prisma.evidenceCard.deleteMany();
+  await prisma.theory.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.user.deleteMany();
 
-  // Create 15 posts distributed among users
-  await prisma.post.createMany({
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@theorydeck.com',
+      name: 'Admin User',
+      role: UserRole.ADMIN,
+    },
+  });
+
+  const moderator = await prisma.user.create({
+    data: {
+      email: 'moderator@theorydeck.com',
+      name: 'Moderator User',
+      role: UserRole.MODERATOR,
+    },
+  });
+
+  const user1 = await prisma.user.create({
+    data: {
+      email: 'alice@example.com',
+      name: 'Alice Johnson',
+      role: UserRole.USER,
+    },
+  });
+
+  const user2 = await prisma.user.create({
+    data: {
+      email: 'bob@example.com',
+      name: 'Bob Smith',
+      role: UserRole.USER,
+    },
+  });
+
+  const user3 = await prisma.user.create({
+    data: {
+      email: 'charlie@example.com',
+      name: 'Charlie Davis',
+      role: UserRole.USER,
+    },
+  });
+
+  const theory1 = await prisma.theory.create({
+    data: {
+      slug: 'ai-will-achieve-agi-by-2030',
+      title: 'AI will achieve AGI by 2030',
+      claim: 'Artificial General Intelligence (AGI) will be achieved by major AI labs before the end of 2030.',
+      tldr: 'With rapid progress in large language models, multimodal AI, and reasoning capabilities, several experts predict AGI could emerge within the next 5-7 years. This theory examines whether current trajectories support this timeline.',
+      status: TheoryStatus.ACTIVE,
+      realm: 'Technology',
+      topic: 'Artificial Intelligence',
+      tags: ['AI', 'AGI', 'Future', 'Technology'],
+      authorId: user1.id,
+    },
+  });
+
+  const theory2 = await prisma.theory.create({
+    data: {
+      slug: 'remote-work-increases-productivity',
+      title: 'Remote work increases productivity',
+      claim: 'Employees working remotely are more productive than those working in traditional office environments.',
+      tldr: 'Multiple studies show mixed results on remote work productivity. While some workers thrive with flexibility, others struggle with isolation and distractions. This theory explores the evidence on both sides.',
+      status: TheoryStatus.ACTIVE,
+      realm: 'Business',
+      topic: 'Work Culture',
+      tags: ['Remote Work', 'Productivity', 'Business'],
+      authorId: user2.id,
+    },
+  });
+
+  const theory3 = await prisma.theory.create({
+    data: {
+      slug: 'mediterranean-diet-reduces-heart-disease',
+      title: 'Mediterranean diet significantly reduces heart disease risk',
+      claim: 'Following a Mediterranean diet can reduce the risk of cardiovascular disease by 30% or more.',
+      tldr: 'The Mediterranean diet, rich in olive oil, fish, vegetables, and whole grains, has been studied extensively for its health benefits. Evidence suggests significant cardiovascular benefits.',
+      status: TheoryStatus.ACTIVE,
+      realm: 'Health',
+      topic: 'Nutrition',
+      tags: ['Health', 'Diet', 'Heart Disease', 'Nutrition'],
+      authorId: user3.id,
+    },
+  });
+
+  const card1 = await prisma.evidenceCard.create({
+    data: {
+      content: 'OpenAI CEO Sam Altman stated in multiple interviews that AGI could be achieved within "a few thousand days" from 2024, suggesting a 2030-2032 timeline.',
+      source: 'https://example.com/altman-agi-timeline',
+      sourceTitle: 'Sam Altman on AGI Timeline',
+      context: 'Interview with major tech publication',
+      stance: Stance.FOR,
+      status: CardStatus.ACTIVE,
+      theoryId: theory1.id,
+      authorId: user1.id,
+    },
+  });
+
+  const card2 = await prisma.evidenceCard.create({
+    data: {
+      content: 'Current AI models still struggle with basic reasoning tasks that humans find trivial. The gap between narrow AI and general intelligence remains vast.',
+      source: 'https://example.com/ai-limitations-2024',
+      sourceTitle: 'AI Reasoning Limitations Study',
+      context: 'Academic research paper',
+      stance: Stance.AGAINST,
+      status: CardStatus.ACTIVE,
+      theoryId: theory1.id,
+      authorId: user2.id,
+    },
+  });
+
+  const card3 = await prisma.evidenceCard.create({
+    data: {
+      content: 'DeepMind\'s recent advances in protein folding and mathematical reasoning show exponential progress in AI capabilities over the past 3 years.',
+      source: 'https://example.com/deepmind-advances',
+      sourceTitle: 'DeepMind Research Breakthroughs',
+      stance: Stance.FOR,
+      status: CardStatus.ACTIVE,
+      theoryId: theory1.id,
+      authorId: user3.id,
+    },
+  });
+
+  const card4 = await prisma.evidenceCard.create({
+    data: {
+      content: 'A Stanford study of 10,000 workers found that remote employees completed 13% more tasks and reported higher job satisfaction.',
+      source: 'https://example.com/stanford-remote-work-study',
+      sourceTitle: 'Stanford Remote Work Productivity Study 2023',
+      stance: Stance.FOR,
+      status: CardStatus.ACTIVE,
+      theoryId: theory2.id,
+      authorId: user1.id,
+    },
+  });
+
+  const card5 = await prisma.evidenceCard.create({
+    data: {
+      content: 'Microsoft internal data showed that remote workers had 40% more meetings and worked longer hours, but actual output measured by completed projects decreased.',
+      source: 'https://example.com/microsoft-productivity-analysis',
+      sourceTitle: 'Microsoft Workplace Analytics Report',
+      stance: Stance.AGAINST,
+      status: CardStatus.ACTIVE,
+      theoryId: theory2.id,
+      authorId: user2.id,
+    },
+  });
+
+  const card6 = await prisma.evidenceCard.create({
+    data: {
+      content: 'The PREDIMED study followed 7,447 participants and found a 30% reduction in major cardiovascular events among those following a Mediterranean diet.',
+      source: 'https://example.com/predimed-study',
+      sourceTitle: 'PREDIMED Clinical Trial Results',
+      context: 'Randomized controlled trial published in NEJM',
+      stance: Stance.FOR,
+      status: CardStatus.ACTIVE,
+      theoryId: theory3.id,
+      authorId: user3.id,
+    },
+  });
+
+  // Создание голосов
+  await prisma.vote.createMany({
     data: [
-      // Alice's posts
-      {
-        title: 'Getting Started with TypeScript and Prisma',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce id erat a lorem tincidunt ultricies. Vivamus porta bibendum nulla vel accumsan.',
-        published: true,
-        authorId: userIdMapping.alice
-      },
-      {
-        title: 'How ORMs Simplify Complex Queries',
-        content: 'Duis sagittis urna ut sapien tristique convallis. Aenean vel ligula felis. Phasellus bibendum sem at elit dictum volutpat.',
-        published: false,
-        authorId: userIdMapping.alice
-      },
-
-      // Bob's posts
-      {
-        title: 'Mastering Prisma: Efficient Database Migrations',
-        content: 'Ut ullamcorper nec erat id auctor. Nullam nec ligula in ex feugiat tincidunt. Cras accumsan vehicula tortor ut eleifend.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'Best Practices for Type Safety in ORMs',
-        content: 'Aliquam erat volutpat. Suspendisse potenti. Maecenas fringilla elit vel eros laoreet, et tempor sapien vulputate.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'TypeScript Utility Types for Database Models',
-        content: 'Donec ac magna facilisis, vestibulum ligula at, elementum nisl. Morbi volutpat eget velit eu egestas.',
-        published: false,
-        authorId: userIdMapping.bob
-      },
-
-      // Charlie's posts (no posts for Charlie)
-
-      // Diana's posts
-      {
-        title: 'Exploring Database Indexes and Their Performance Impact',
-        content: 'Vivamus ac velit tincidunt, sollicitudin erat quis, fringilla enim. Aenean posuere est a risus placerat suscipit.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Choosing the Right Database for Your TypeScript Project',
-        content: 'Sed vel suscipit lorem. Duis et arcu consequat, sagittis justo quis, pellentesque risus. Curabitur sed consequat est.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Designing Scalable Schemas with Prisma',
-        content: 'Phasellus ut erat nec elit ultricies egestas. Vestibulum rhoncus urna eget magna varius pharetra.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Handling Relations Between Models in ORMs',
-        content: 'Integer luctus ac augue at tristique. Curabitur varius nisl vitae mi fringilla, vel tincidunt nunc dictum.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-
-      // Edward's posts
-      {
-        title: 'Why TypeORM Still Has Its Place in 2025',
-        content: 'Morbi non arcu nec velit cursus feugiat sit amet sit amet mi. Etiam porttitor ligula id sem molestie, in tempor arcu bibendum.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'NoSQL vs SQL: The Definitive Guide for Developers',
-        content: 'Suspendisse a ligula sit amet risus ullamcorper tincidunt. Curabitur tincidunt, sapien id fringilla auctor, risus libero gravida odio, nec volutpat libero orci nec lorem.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Optimizing Queries with Prisma\'s Select and Include',
-        content: 'Proin vel diam vel nisi facilisis malesuada. Sed vitae diam nec magna mollis commodo a vitae nunc.',
-        published: false,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'PostgreSQL Optimizations Every Developer Should Know',
-        content: 'Nullam mollis quam sit amet lacus interdum, at suscipit libero pellentesque. Suspendisse in mi vitae magna finibus pretium.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Scaling Applications with Partitioned Tables in PostgreSQL',
-        content: 'Cras vitae tortor in mauris tristique elementum non id ipsum. Nunc vitae pulvinar purus.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
+      { userId: user1.id, cardId: card1.id, strength: 8 },
+      { userId: user2.id, cardId: card1.id, strength: 5 },
+      { userId: user3.id, cardId: card1.id, strength: 10 },
+      { userId: user1.id, cardId: card2.id, strength: 5 },
+      { userId: user2.id, cardId: card2.id, strength: 8 },
+      { userId: user3.id, cardId: card2.id, strength: 2 },
+      { userId: user1.id, cardId: card3.id, strength: 10 },
+      { userId: user2.id, cardId: card3.id, strength: 8 },
+      { userId: user1.id, cardId: card4.id, strength: 8 },
+      { userId: user2.id, cardId: card4.id, strength: 10 },
+      { userId: user3.id, cardId: card4.id, strength: 5 },
+      { userId: user1.id, cardId: card5.id, strength: 5 },
+      { userId: user3.id, cardId: card5.id, strength: 8 },
+      { userId: user1.id, cardId: card6.id, strength: 10 },
+      { userId: user2.id, cardId: card6.id, strength: 8 },
     ],
   });
 
-  console.log('Seeding completed.');
+  console.log('✅ Seed completed successfully!');
+  console.log(`Created:`);
+  console.log(`- 5 users (1 admin, 1 moderator, 3 regular users)`);
+  console.log(`- 3 theories`);
+  console.log(`- 6 evidence cards`);
+  console.log(`- 15 votes`);
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
+  .catch((e) => {
+    console.error('❌ Seed failed:', e);
+    console.error('Full error:', e.stack);
     process.exit(1);
+  })
+  .finally(async () => {
+    await pool.end();
+    await prisma.$disconnect();
   });
