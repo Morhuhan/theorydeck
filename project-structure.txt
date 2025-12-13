@@ -1,0 +1,164 @@
+﻿theorydeck/
+|-- app/
+  |-- (auth)/
+    |-- login/
+      |-- page.tsx
+    |-- register/
+      |-- page.tsx
+    |-- layout.tsx
+  |-- (main)/
+    |-- profile/
+      |-- page.tsx
+    |-- theories/
+      |-- new/
+        |-- page.tsx
+      |-- [slug]/
+    |-- layout.tsx
+    |-- page.tsx
+  |-- admin/
+    |-- reports/
+      |-- page.tsx
+    |-- theories/
+      |-- page.tsx
+    |-- layout.tsx
+  |-- api/
+    |-- auth/
+      |-- [...nextauth]/
+    |-- comments/
+      |-- [id]/
+      |-- route.ts
+    |-- evidence-cards/
+      |-- [id]/
+      |-- route.ts
+    |-- posts/
+      |-- route.ts
+    |-- reports/
+      |-- [id]/
+      |-- route.ts
+    |-- theories/
+      |-- [id]/
+      |-- route.ts
+  |-- login/
+    |-- page.tsx
+  |-- posts/
+    |-- new/
+      |-- actions.ts
+      |-- page.tsx
+    |-- [id]/
+    |-- page.tsx
+  |-- register/
+    |-- page.tsx
+  |-- setup/
+    |-- code-block.tsx
+    |-- page.tsx
+    |-- setup-instructions.tsx
+    |-- setup-steps.tsx
+  |-- users/
+    |-- new/
+      |-- page.tsx
+  |-- error.tsx
+  |-- favicon.ico
+  |-- globals.css
+  |-- Header.tsx
+  |-- layout.tsx
+  |-- page.tsx
+  |-- providers.tsx
+|-- components/
+  |-- auth/
+    |-- LoginForm.tsx
+    |-- RegisterForm.tsx
+    |-- UserMenu.tsx
+  |-- comment/
+    |-- CommentForm.tsx
+    |-- CommentItem.tsx
+    |-- CommentList.tsx
+  |-- evidence/
+    |-- EvidenceCard.tsx
+    |-- EvidenceForm.tsx
+    |-- EvidenceList.tsx
+    |-- EvidenceSort.tsx
+    |-- VoteButtons.tsx
+  |-- layout/
+    |-- Footer.tsx
+    |-- Header.tsx
+    |-- Sidebar.tsx
+  |-- report/
+    |-- ReportButton.tsx
+    |-- ReportDialog.tsx
+  |-- shared/
+    |-- ConfirmDialog.tsx
+    |-- EmptyState.tsx
+    |-- ErrorMessage.tsx
+    |-- LoadingSpinner.tsx
+    |-- StatusBadge.tsx
+    |-- TagBadge.tsx
+  |-- theory/
+    |-- ConfidenceBar.tsx
+    |-- TheoryCard.tsx
+    |-- TheoryFilters.tsx
+    |-- TheoryForm.tsx
+    |-- TheoryHeader.tsx
+    |-- TheoryTLDR.tsx
+  |-- ui/
+    |-- badge.tsx
+    |-- button.tsx
+    |-- card.tsx
+    |-- dialog.tsx
+    |-- input.tsx
+    |-- progress.tsx
+    |-- select.tsx
+    |-- tabs.tsx
+    |-- textarea.tsx
+|-- lib/
+  |-- api/
+    |-- comments.ts
+    |-- evidence.ts
+    |-- reports.ts
+    |-- theories.ts
+    |-- votes.ts
+  |-- auth/
+    |-- auth.config.ts
+    |-- auth.ts
+    |-- middleware.ts
+  |-- constants/
+    |-- report-reasons.ts
+    |-- theory-statuses.ts
+    |-- vote-strengths.ts
+  |-- db/
+    |-- prisma.ts
+  |-- hooks/
+    |-- useComments.ts
+    |-- useDebounce.ts
+    |-- useEvidenceCards.ts
+    |-- useTheory.ts
+    |-- useVote.ts
+  |-- utils/
+    |-- confidence.ts
+    |-- formatting.ts
+    |-- permissions.ts
+    |-- slug.ts
+    |-- validation.ts
+  |-- db-utils.ts
+  |-- prisma.ts
+|-- types/
+  |-- api.ts
+  |-- comment.ts
+  |-- evidence.ts
+  |-- index.ts
+  |-- report.ts
+  |-- theory.ts
+  |-- vote.ts
+|-- .env
+|-- .gitignore
+|-- auth.ts
+|-- create-structure.ps1
+|-- eslint.config.mjs
+|-- generate-tree.ps1
+|-- next.config.ts
+|-- nextjs-auth-starter.png
+|-- package-lock.json
+|-- package.json
+|-- postcss.config.mjs
+|-- prisma.config.ts
+|-- README.md
+|-- tsconfig.json
