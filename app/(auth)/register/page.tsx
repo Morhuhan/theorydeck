@@ -1,63 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { validateEmail } from '@/lib/utils/validation';
-import prisma from '@/lib/db/prisma';
+import { RegisterForm } from '@/components/auth/RegisterForm';
+import Link from 'next/link';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { email, password, name } = await request.json();
+export default function RegisterPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Create an account</h1>
+          <p className="text-gray-600">Join TheoryDeck community</p>
+        </div>
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
+        <RegisterForm />
 
-    if (!validateEmail(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      );
-    }
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User already exists' },
-        { status: 400 }
-      );
-    }
-
-    const hashedPassword = await hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-      },
-    });
-
-    return NextResponse.json(
-      { message: 'User created successfully', userId: user.id },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500 }
-    );
-  }
+        <p className="text-center mt-6 text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }
+
+export const metadata = {
+  title: 'Register - TheoryDeck',
+  description: 'Create a new account',
+};
