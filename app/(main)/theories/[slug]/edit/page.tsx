@@ -2,8 +2,8 @@ import { redirect, notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth/auth.config';
 import { getTheoryBySlug } from '@/lib/api/theories';
-import { TheoryEditForm } from '@/components/theory/TheoryEditForm';
 import { canEditTheory } from '@/lib/utils/permissions';
+import { TheoryEditForm } from '@/components/theory/TheoryEditForm';
 
 interface EditTheoryPageProps {
   params: {
