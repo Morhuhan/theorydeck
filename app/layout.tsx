@@ -1,28 +1,18 @@
-// app/layout.tsx
-import "./globals.css";
-import Header from "./Header";
-import Providers from "./providers";
+import Link from 'next/link';
 
-export const metadata = {
-  title: "Superblog",
-  description: "A blog app using Next.js and Prisma",
-};
-
-export default function RootLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <Providers>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
-        </Providers>
-      </body>
-    </html>
+    <div className="min-h-screen bg-gray-50">
+      <div className="py-6 px-4">
+        <Link href="/" className="text-2xl font-bold">
+          TheoryDeck
+        </Link>
+      </div>
+      {children}
+    </div>
   );
 }
