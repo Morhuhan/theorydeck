@@ -12,6 +12,7 @@ model User {
   name          String?
   password      String?
   emailVerified DateTime?
+  role          UserRole  @default(USER)
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -26,6 +27,12 @@ model User {
   reports       Report[]
   
   @@index([email])
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
 }
 
 model Account {
