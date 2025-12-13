@@ -6,3 +6,5 @@ export { EvidenceCard } from "./EvidenceCard";
 export { TopEvidence } from "./TopEvidence";
 export { AllEvidence } from "./AllEvidence";
 export { TheoryPage } from "./TheoryPage";
+export { TheoryCard } from "./TheoryCard";
+export { TheoryList } from "./TheoryList";

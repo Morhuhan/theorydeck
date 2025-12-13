@@ -1,24 +1,49 @@
 // components/theory/TheoryPage.tsx
 "use client";
 
-import { AllEvidence } from "./AllEvidence";
-import { ConfidenceBar } from "./ConfidenceBar";
 import { TheoryHeader } from "./TheoryHeader";
 import { TheoryTLDR } from "./TheoryTLDR";
-import { Separator } from "@/components/ui/separator";
+import { ConfidenceBar } from "./ConfidenceBar";
 import { TopEvidence } from "./TopEvidence";
+import { AllEvidence } from "./AllEvidence";
+import { Separator } from "@/components/ui/separator";
 
-const mockTheory = {
-  id: "1",
-  slug: "ai-will-replace-programmers",
-  title: "ИИ полностью заменит программистов к 2030 году",
-  claim: "Развитие больших языковых моделей и AI-ассистентов приведёт к тому, что традиционное программирование станет ненужным, и профессия программиста исчезнет.",
-  tldr: "С появлением GPT-4, Claude и подобных моделей многие задачи программирования автоматизируются. Сторонники считают, что через 5-7 лет ИИ сможет писать код лучше людей. Критики указывают на ограничения моделей и необходимость человеческого контроля.",
-  status: "ACTIVE",
-  realm: "Технологии",
-  topic: "ИИ",
-  tags: ["AI", "Программирование", "Будущее работы"],
+const mockTheories: Record<string, {
+  id: string;
+  slug: string;
+  title: string;
+  claim: string;
+  tldr: string;
+  status: string;
+  realm: string;
+  topic: string;
+  tags: string[];
+}> = {
+  "ai-will-replace-programmers": {
+    id: "1",
+    slug: "ai-will-replace-programmers",
+    title: "ИИ полностью заменит программистов к 2030 году",
+    claim: "Развитие больших языковых моделей и AI-ассистентов приведёт к тому, что традиционное программирование станет ненужным, и профессия программиста исчезнет.",
+    tldr: "С появлением GPT-4, Claude и подобных моделей многие задачи программирования автоматизируются. Сторонники считают, что через 5-7 лет ИИ сможет писать код лучше людей. Критики указывают на ограничения моделей и необходимость человеческого контроля.",
+    status: "ACTIVE",
+    realm: "Технологии",
+    topic: "ИИ",
+    tags: ["AI", "Программирование", "Будущее работы"],
+  },
+  "remote-work-more-productive": {
+    id: "2",
+    slug: "remote-work-more-productive",
+    title: "Удалённая работа продуктивнее офисной",
+    claim: "Сотрудники, работающие из дома, демонстрируют более высокую продуктивность и удовлетворённость работой по сравнению с офисными работниками.",
+    tldr: "Исследования показывают рост продуктивности на 13-20% при удалённой работе. Экономия времени на дорогу и гибкий график позволяют лучше балансировать работу и жизнь.",
+    status: "ACTIVE",
+    realm: "Бизнес",
+    topic: "HR",
+    tags: ["Удалёнка", "Продуктивность", "Офис"],
+  },
 };
+
+const defaultTheory = mockTheories["ai-will-replace-programmers"];
 
 const mockForCards = [
   {
@@ -88,7 +113,13 @@ const mockAgainstCards = [
   },
 ];
 
-export function TheoryPage() {
+interface TheoryPageProps {
+  slug?: string;
+}
+
+export function TheoryPage({ slug }: TheoryPageProps) {
+  const theory = slug ? (mockTheories[slug] || defaultTheory) : defaultTheory;
+  
   const forScore = mockForCards.reduce((sum, card) => sum + card.averageStrength * card.voteCount, 0);
   const againstScore = mockAgainstCards.reduce((sum, card) => sum + card.averageStrength * card.voteCount, 0);
 
@@ -102,14 +133,14 @@ export function TheoryPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
       <TheoryHeader
-        title={mockTheory.title}
-        realm={mockTheory.realm}
-        topic={mockTheory.topic}
-        tags={mockTheory.tags}
-        status={mockTheory.status}
+        title={theory.title}
+        realm={theory.realm}
+        topic={theory.topic}
+        tags={theory.tags}
+        status={theory.status}
       />
 
-      <TheoryTLDR claim={mockTheory.claim} tldr={mockTheory.tldr} />
+      <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />
 
       <ConfidenceBar forScore={forScore} againstScore={againstScore} />
 
