@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getTheoryBySlug } from '@/lib/api/theories';
+import { getEvidenceCards } from '@/lib/api/evidence';
 import { TheoryHeader } from '@/components/theory/TheoryHeader';
 import { TheoryTLDR } from '@/components/theory/TheoryTLDR';
 import { ConfidenceBar } from '@/components/theory/ConfidenceBar';
@@ -26,14 +27,11 @@ export default async function TheoryPage({ params }: TheoryPageProps) {
     notFound();
   }
 
-  const cardsWithAverages = theory.evidenceCards.map(card => ({
-    ...card,
-    averageStrength: 5,
-  }));
+  const evidenceCards = await getEvidenceCards(theory.id, session?.user?.id);
 
-  const confidence = calculateConfidence(cardsWithAverages);
-  const forCards = cardsWithAverages.filter(c => c.stance === 'FOR');
-  const againstCards = cardsWithAverages.filter(c => c.stance === 'AGAINST');
+  const confidence = calculateConfidence(evidenceCards);
+  const forCards = evidenceCards.filter(c => c.stance === 'FOR');
+  const againstCards = evidenceCards.filter(c => c.stance === 'AGAINST');
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -84,7 +82,7 @@ export default async function TheoryPage({ params }: TheoryPageProps) {
                 )}
               </div>
             ) : (
-              <EvidenceList cards={forCards} theorySlug={theory.slug} />
+              <EvidenceList cards={forCards} theorySlug={theory.slug} canVote={!!session} />
             )}
           </TabsContent>
 
@@ -101,7 +99,7 @@ export default async function TheoryPage({ params }: TheoryPageProps) {
                 )}
               </div>
             ) : (
-              <EvidenceList cards={againstCards} theorySlug={theory.slug} />
+              <EvidenceList cards={againstCards} theorySlug={theory.slug} canVote={!!session} />
             )}
           </TabsContent>
         </Tabs>
