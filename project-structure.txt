@@ -14,7 +14,6 @@
         |-- page.tsx
       |-- [slug]/
     |-- layout.tsx
-    |-- page.tsx
   |-- admin/
     |-- reports/
       |-- page.tsx
@@ -30,8 +29,6 @@
     |-- evidence-cards/
       |-- [id]/
       |-- route.ts
-    |-- posts/
-      |-- route.ts
     |-- reports/
       |-- [id]/
       |-- route.ts
@@ -40,12 +37,6 @@
       |-- route.ts
   |-- login/
     |-- page.tsx
-  |-- posts/
-    |-- new/
-      |-- actions.ts
-      |-- page.tsx
-    |-- [id]/
-    |-- page.tsx
   |-- register/
     |-- page.tsx
   |-- setup/
@@ -53,9 +44,6 @@
     |-- page.tsx
     |-- setup-instructions.tsx
     |-- setup-steps.tsx
-  |-- users/
-    |-- new/
-      |-- page.tsx
   |-- error.tsx
   |-- favicon.ico
   |-- globals.css
@@ -100,13 +88,18 @@
     |-- TheoryHeader.tsx
     |-- TheoryTLDR.tsx
   |-- ui/
+    |-- alert.tsx
+    |-- avatar.tsx
     |-- badge.tsx
     |-- button.tsx
     |-- card.tsx
     |-- dialog.tsx
+    |-- dropdown-menu.tsx
     |-- input.tsx
+    |-- label.tsx
     |-- progress.tsx
     |-- select.tsx
+    |-- separator.tsx
     |-- tabs.tsx
     |-- textarea.tsx
 |-- lib/
@@ -138,19 +131,20 @@
     |-- permissions.ts
     |-- slug.ts
     |-- validation.ts
-  |-- db-utils.ts
-  |-- prisma.ts
+  |-- utils.ts
 |-- types/
   |-- api.ts
   |-- comment.ts
   |-- evidence.ts
   |-- index.ts
+  |-- next-auth.d.ts
   |-- report.ts
   |-- theory.ts
   |-- vote.ts
 |-- .env
 |-- .gitignore
 |-- auth.ts
+|-- components.json
 |-- create-structure.ps1
 |-- eslint.config.mjs
 |-- generate-tree.ps1
@@ -160,5 +154,6 @@
 |-- package.json
 |-- postcss.config.mjs
 |-- prisma.config.ts
+|-- project-structure.txt
 |-- README.md
 |-- tsconfig.json
