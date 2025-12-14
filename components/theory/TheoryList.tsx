@@ -73,7 +73,7 @@ const mockTheories = [
 
 export function TheoryList() {
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-8xl mx-auto">
       {mockTheories.map((theory) => (
         <TheoryCard key={theory.slug} {...theory} />
       ))}
