@@ -4,6 +4,7 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, ThumbsUp } from "lucide-react";
+import { VoteStrength } from "./VoteStrength";
 
 export type Stance = "FOR" | "AGAINST";
 
@@ -46,7 +47,8 @@ export function EvidenceCard({
           </Badge>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <ThumbsUp className="h-4 w-4" />
-            <span>{averageStrength.toFixed(1)}</span>
+            <span className="font-semibold">{averageStrength.toFixed(1)}</span>
+            <span className="text-xs">/ 10</span>
           </div>
         </div>
       </CardHeader>
@@ -69,11 +71,13 @@ export function EvidenceCard({
             {sourceTitle || "Источник"}
           </a>
         )}
+
+        <VoteStrength className="pt-2 border-t" />
       </CardContent>
       
       <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{authorName || "Аноним"}</span>
-        <span>{voteCount} оценок</span>
+        <span>{voteCount} {voteCount === 1 ? "оценка" : voteCount < 5 ? "оценки" : "оценок"}</span>
       </CardFooter>
     </Card>
   );

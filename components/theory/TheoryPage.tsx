@@ -8,7 +8,6 @@ import { ConfidenceBar } from "./ConfidenceBar";
 import { TopEvidence } from "./TopEvidence";
 import { AllEvidence } from "./AllEvidence";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EvidenceForm } from "@/components/forms/EvidenceForm";
 
 const mockTheories: Record<string, {
@@ -125,10 +124,6 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   const topFor = [...mockForCards].sort((a, b) => b.averageStrength - a.averageStrength).slice(0, 3);
   const topAgainst = [...mockAgainstCards].sort((a, b) => b.averageStrength - a.averageStrength).slice(0, 3);
 
-  const handleAddCard = () => {
-    setIsAddCardOpen(true);
-  };
-
   const handleCardAdded = () => {
     setIsAddCardOpen(false);
   };
@@ -159,21 +154,15 @@ export function TheoryPage({ slug }: TheoryPageProps) {
       <AllEvidence
         forCards={mockForCards}
         againstCards={mockAgainstCards}
-        onAddCard={handleAddCard}
+        onAddCard={() => setIsAddCardOpen(true)}
       />
 
-      <Dialog open={isAddCardOpen} onOpenChange={setIsAddCardOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Добавить доказательство</DialogTitle>
-          </DialogHeader>
-          <EvidenceForm 
-            theoryId={theory.id}
-            onSuccess={handleCardAdded}
-            onCancel={() => setIsAddCardOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <EvidenceForm 
+        theoryId={theory.id}
+        open={isAddCardOpen}
+        onOpenChange={setIsAddCardOpen}
+        onSuccess={handleCardAdded}
+      />
     </div>
   );
 }
