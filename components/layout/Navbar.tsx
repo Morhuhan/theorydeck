@@ -2,13 +2,14 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { Layers, Plus } from "lucide-react";
 
-const mockUser = null;
-
 export function Navbar() {
+  const { data: session } = useSession();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -18,13 +19,15 @@ export function Navbar() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/theory/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Новая теория
-            </Link>
-          </Button>
-          <UserMenu user={mockUser} />
+          {session && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/theory/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Новая теория
+              </Link>
+            </Button>
+          )}
+          <UserMenu user={session?.user} />
         </div>
       </div>
     </header>
