@@ -33,7 +33,6 @@ export function EvidenceForm({ onSuccess, onCancel }: EvidenceFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Добавить доказательство</CardTitle>
         <CardDescription>
           Приведите факт, исследование или аргумент в поддержку или против теории
         </CardDescription>
