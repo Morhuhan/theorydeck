@@ -1,7 +1,9 @@
 // components/forms/ReportForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldSet,
+  FieldLegend,
+} from "@/components/ui/field";
 
 interface ReportFormProps {
   open: boolean;
@@ -31,30 +42,32 @@ const REPORT_REASONS = [
   { value: "OTHER", label: "Другое" },
 ];
 
-export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) {
-  const [reason, setReason] = useState<string>("");
-  const [details, setDetails] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+const formSchema = z.object({
+  reason: z.string().min(1, "Пожалуйста, выберите причину жалобы"),
+  details: z.string().optional(),
+});
 
+export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) {
   const targetLabels = {
     theory: "теорию",
     card: "карточку",
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reason) return;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      reason: "",
+      details: "",
+    },
+  });
 
-    setIsLoading(true);
-
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     // TODO: Implement actual report submission
     await new Promise((resolve) => setTimeout(resolve, 500));
-    alert("Жалоба отправлена (заглушка)");
-    setIsLoading(false);
-    setReason("");
-    setDetails("");
+    alert(`Жалоба отправлена: ${data.reason}`);
+    form.reset();
     onOpenChange(false);
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,42 +79,79 @@ export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-3">
-            <Label>Причина жалобы *</Label>
-            <RadioGroup value={reason} onValueChange={setReason}>
-              {REPORT_REASONS.map((r) => (
-                <div key={r.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={r.value} id={r.value} />
-                  <Label htmlFor={r.value} className="cursor-pointer">
-                    {r.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Controller
+            name="reason"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <FieldSet>
+                <FieldLegend variant="label">Причина жалобы *</FieldLegend>
+                <RadioGroup
+                  name={field.name}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <FieldGroup>
+                    {REPORT_REASONS.map((r) => (
+                      <Field
+                        key={r.value}
+                        orientation="horizontal"
+                        data-invalid={fieldState.invalid}
+                      >
+                        <RadioGroupItem
+                          value={r.value}
+                          id={`report-reason-${r.value}`}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        <FieldLabel
+                          htmlFor={`report-reason-${r.value}`}
+                          className="cursor-pointer font-normal"
+                        >
+                          {r.label}
+                        </FieldLabel>
+                      </Field>
+                    ))}
+                  </FieldGroup>
+                </RadioGroup>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </FieldSet>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="details">Подробности</Label>
-            <Textarea
-              id="details"
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              placeholder="Дополнительная информация..."
-              rows={3}
-            />
-          </div>
+          <Controller
+            name="details"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Подробности</FieldLabel>
+                <Textarea
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Дополнительная информация..."
+                  rows={3}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <div className="flex gap-2 justify-end">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                form.reset();
+                onOpenChange(false);
+              }}
             >
               Отмена
             </Button>
-            <Button type="submit" disabled={isLoading || !reason}>
-              {isLoading ? "Отправка..." : "Отправить жалобу"}
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting || !form.formState.isDirty}
+            >
+              {form.formState.isSubmitting ? "Отправка..." : "Отправить жалобу"}
             </Button>
           </div>
         </form>

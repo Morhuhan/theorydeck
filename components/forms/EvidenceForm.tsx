@@ -1,13 +1,23 @@
 // components/forms/EvidenceForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+} from "@/components/ui/field";
 
 interface EvidenceFormProps {
   theoryId?: string;
@@ -15,20 +25,44 @@ interface EvidenceFormProps {
   onCancel?: () => void;
 }
 
+const formSchema = z.object({
+  stance: z.enum(["FOR", "AGAINST"], {
+    required_error: "Выберите позицию",
+  }),
+  content: z
+    .string()
+    .min(20, "Содержание должно содержать минимум 20 символов")
+    .max(1000, "Содержание должно содержать максимум 1000 символов"),
+  source: z
+    .string()
+    .url("Введите корректный URL")
+    .optional()
+    .or(z.literal("")),
+  sourceTitle: z.string().optional(),
+  context: z
+    .string()
+    .max(500, "Контекст должен содержать максимум 500 символов")
+    .optional(),
+});
+
 export function EvidenceForm({ onSuccess, onCancel }: EvidenceFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [stance, setStance] = useState<"FOR" | "AGAINST">("FOR");
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      stance: "FOR",
+      content: "",
+      source: "",
+      sourceTitle: "",
+      context: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     // TODO: Implement actual evidence creation
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Карточка добавлена (заглушка)");
-    setIsLoading(false);
+    alert(`Карточка добавлена: ${data.stance}`);
     onSuccess?.();
-  };
+  }
 
   return (
     <Card>
@@ -40,71 +74,139 @@ export function EvidenceForm({ onSuccess, onCancel }: EvidenceFormProps) {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <Label>Позиция *</Label>
-            <RadioGroup
-              value={stance}
-              onValueChange={(value) => setStance(value as "FOR" | "AGAINST")}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="FOR" id="for" />
-                <Label htmlFor="for" className="text-green-600 font-medium cursor-pointer">
-                  За теорию
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="AGAINST" id="against" />
-                <Label htmlFor="against" className="text-red-600 font-medium cursor-pointer">
-                  Против теории
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Controller
+            name="stance"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <FieldSet>
+                <FieldLegend variant="label">Позиция *</FieldLegend>
+                <RadioGroup
+                  name={field.name}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <FieldGroup className="flex gap-4">
+                    <Field
+                      orientation="horizontal"
+                      data-invalid={fieldState.invalid}
+                    >
+                      <RadioGroupItem
+                        value="FOR"
+                        id="stance-for"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <FieldLabel
+                        htmlFor="stance-for"
+                        className="text-green-600 font-medium cursor-pointer"
+                      >
+                        За теорию
+                      </FieldLabel>
+                    </Field>
+                    <Field
+                      orientation="horizontal"
+                      data-invalid={fieldState.invalid}
+                    >
+                      <RadioGroupItem
+                        value="AGAINST"
+                        id="stance-against"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <FieldLabel
+                        htmlFor="stance-against"
+                        className="text-red-600 font-medium cursor-pointer"
+                      >
+                        Против теории
+                      </FieldLabel>
+                    </Field>
+                  </FieldGroup>
+                </RadioGroup>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </FieldSet>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="content">Содержание *</Label>
-            <Textarea
-              id="content"
-              placeholder="Опишите доказательство или аргумент..."
-              rows={4}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Чётко изложите факт или аргумент. Избегайте эмоций и личных мнений.
-            </p>
-          </div>
+          <Controller
+            name="content"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Содержание *</FieldLabel>
+                <Textarea
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Опишите доказательство или аргумент..."
+                  rows={4}
+                />
+                <FieldDescription>
+                  Чётко изложите факт или аргумент. Избегайте эмоций и личных мнений.
+                </FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="source">Источник (URL)</Label>
-            <Input
-              id="source"
-              type="url"
-              placeholder="https://..."
-            />
-          </div>
+          <Controller
+            name="source"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Источник (URL)</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="url"
+                  aria-invalid={fieldState.invalid}
+                  placeholder="https://..."
+                  autoComplete="url"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="sourceTitle">Название источника</Label>
-            <Input
-              id="sourceTitle"
-              placeholder="Например: Nature, Arxiv, BBC News"
-            />
-          </div>
+          <Controller
+            name="sourceTitle"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Название источника</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Например: Nature, Arxiv, BBC News"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="context">Контекст</Label>
-            <Textarea
-              id="context"
-              placeholder="Дополнительный контекст: когда, где, при каких условиях..."
-              rows={2}
-            />
-          </div>
+          <Controller
+            name="context"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Контекст</FieldLabel>
+                <Textarea
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="Дополнительный контекст: когда, где, при каких условиях..."
+                  rows={2}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Добавление..." : "Добавить карточку"}
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? "Добавление..." : "Добавить карточку"}
             </Button>
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel}>
