@@ -68,42 +68,22 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   const forCards = theory.evidenceCards.filter((c: any) => c.stance === "FOR");
   const againstCards = theory.evidenceCards.filter((c: any) => c.stance === "AGAINST");
 
-  const calculateForPercent = () => {
-    if (theory.evidenceCards.length === 0) return 50;
-
-    const totalForStrength = forCards.reduce(
-      (sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5),
-      0
-    );
-    const totalAgainstStrength = againstCards.reduce(
-      (sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5),
-      0
-    );
-
-    if (totalForStrength + totalAgainstStrength === 0) return 50;
-
-    return Math.round((totalForStrength / (totalForStrength + totalAgainstStrength)) * 100);
-  };
-
-  const forPercent = calculateForPercent();
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
       <TheoryHeader
         title={theory.title}
-        claim={theory.claim}
         realm={theory.realm}
         topic={theory.topic}
         tags={theory.tags}
-        authorName={theory.author.name || theory.author.email || "Аноним"}
-        createdAt={new Date(theory.createdAt)}
-        theoryId={theory.id}
-        onReportClick={() => setIsTheoryReportModalOpen(true)}
+        status={theory.status}
       />
 
-      <TheoryTLDR content={theory.tldr} />
+      <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />
 
-      <ConfidenceBar forPercent={forPercent} evidenceCount={theory.evidenceCards.length} />
+      <ConfidenceBar
+        forScore={forCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
+        againstScore={againstCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
+      />
 
       {session && (
         <div className="flex justify-center">
@@ -114,9 +94,12 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         </div>
       )}
 
-      <TopEvidence forCards={forCards.slice(0, 3)} againstCards={againstCards.slice(0, 3)} />
+      <div className="grid md:grid-cols-2 gap-8">
+        <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} />
+        <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} />
+      </div>
 
-      <AllEvidence evidenceCards={theory.evidenceCards} />
+      <AllEvidence forCards={forCards} againstCards={againstCards} />
 
       {session && (
         <EvidenceForm
@@ -130,7 +113,7 @@ export function TheoryPage({ slug }: TheoryPageProps) {
       <ReportModal
         open={isTheoryReportModalOpen}
         onOpenChange={setIsTheoryReportModalOpen}
-        targetType="theory"
+        targetType="THEORY"
         targetId={theory.id}
       />
     </div>
