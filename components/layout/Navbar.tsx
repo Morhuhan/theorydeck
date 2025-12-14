@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { UserMenu } from "@/components/auth/UserMenu";
 import { Layers, Plus } from "lucide-react";
 
 export function Navbar() {
@@ -27,7 +26,6 @@ export function Navbar() {
               </Link>
             </Button>
           )}
-          <UserMenu user={session?.user} />
         </div>
       </div>
     </header>
