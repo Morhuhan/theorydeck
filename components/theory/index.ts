@@ -1,4 +1,3 @@
-// components/theory/index.ts
 export { TheoryHeader } from "./TheoryHeader";
 export { TheoryTLDR } from "./TheoryTLDR";
 export { ConfidenceBar } from "./ConfidenceBar";
