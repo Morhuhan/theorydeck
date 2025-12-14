@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,64 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Моковые данные для примера
-const mockUsers = [
-  {
-    id: "1",
-    name: "Иван Петров",
-    email: "ivan@example.com",
-    role: "USER",
-    createdAt: new Date("2024-01-15"),
-    theoriesCount: 12,
-    evidenceCount: 45,
-  },
-  {
-    id: "2",
-    name: "Мария Сидорова",
-    email: "maria@example.com",
-    role: "MODERATOR",
-    createdAt: new Date("2024-02-20"),
-    theoriesCount: 8,
-    evidenceCount: 32,
-  },
-  {
-    id: "3",
-    name: "Петр Иванов",
-    email: "petr@example.com",
-    role: "ADMIN",
-    createdAt: new Date("2024-01-01"),
-    theoriesCount: 5,
-    evidenceCount: 15,
-  },
-  {
-    id: "4",
-    name: "Анна Смирнова",
-    email: "anna@example.com",
-    role: "USER",
-    createdAt: new Date("2024-03-10"),
-    theoriesCount: 3,
-    evidenceCount: 18,
-  },
-  {
-    id: "5",
-    name: "Дмитрий Козлов",
-    email: "dmitry@example.com",
-    role: "USER",
-    createdAt: new Date("2024-04-05"),
-    theoriesCount: 15,
-    evidenceCount: 67,
-  },
-  {
-    id: "6",
-    name: "Елена Волкова",
-    email: "elena@example.com",
-    role: "MODERATOR",
-    createdAt: new Date("2024-02-15"),
-    theoriesCount: 6,
-    evidenceCount: 24,
-  },
-];
-
 const roleLabels: Record<string, string> = {
   USER: "Пользователь",
   MODERATOR: "Модератор",
@@ -91,41 +33,98 @@ const roleColors: Record<string, "default" | "secondary" | "destructive"> = {
 export function UsersManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [selectedUser, setSelectedUser] = useState<typeof mockUsers[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [newRole, setNewRole] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredUsers = mockUsers.filter((user) => {
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/users");
+
+      if (!response.ok) {
+        throw new Error("Ошибка при загрузке пользователей");
+      }
+
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
-  const handleChangeRole = (user: typeof mockUsers[0]) => {
+  const handleChangeRole = (user: any) => {
     setSelectedUser(user);
     setNewRole(user.role);
     setIsDialogOpen(true);
   };
 
-  const confirmRoleChange = () => {
+  const confirmRoleChange = async () => {
     if (selectedUser && newRole) {
-      console.log(`Changing role for user ${selectedUser.id} to ${newRole}`);
-      // Здесь будет вызов API для изменения роли
-      setIsDialogOpen(false);
-      setSelectedUser(null);
-      setNewRole("");
+      try {
+        const response = await fetch(`/api/users/${selectedUser.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ role: newRole }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Ошибка при изменении роли");
+        }
+
+        setIsDialogOpen(false);
+        setSelectedUser(null);
+        setNewRole("");
+        await loadUsers();
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Произошла ошибка");
+      }
     }
   };
 
   const getUserInitials = (name: string) => {
+    if (!name) return "U";
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase();
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Загрузка пользователей...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -169,7 +168,7 @@ export function UsersManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockUsers.length}</div>
+            <div className="text-2xl font-bold">{users.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -180,7 +179,7 @@ export function UsersManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockUsers.filter((u) => u.role === "MODERATOR").length}
+              {users.filter((u) => u.role === "MODERATOR").length}
             </div>
           </CardContent>
         </Card>
@@ -192,7 +191,7 @@ export function UsersManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockUsers.filter((u) => u.role === "ADMIN").length}
+              {users.filter((u) => u.role === "ADMIN").length}
             </div>
           </CardContent>
         </Card>
@@ -217,16 +216,16 @@ export function UsersManagement() {
                     </Avatar>
                     <div className="flex-1 space-y-2">
                       <div>
-                        <h3 className="font-semibold text-lg">{user.name}</h3>
+                        <h3 className="font-semibold text-lg">{user.name || "Пользователь"}</h3>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                       <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span>Теорий: {user.theoriesCount}</span>
+                        <span>Теорий: {user._count?.theories || 0}</span>
                         <span>•</span>
-                        <span>Доказательств: {user.evidenceCount}</span>
+                        <span>Доказательств: {user._count?.evidenceCards || 0}</span>
                         <span>•</span>
                         <span>
-                          Зарегистрирован: {user.createdAt.toLocaleDateString("ru-RU")}
+                          Зарегистрирован: {new Date(user.createdAt).toLocaleDateString("ru-RU")}
                         </span>
                       </div>
                       <div>
