@@ -1,63 +1,30 @@
 // components/auth/RegisterForm.tsx
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Layers } from "lucide-react";
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-  FieldDescription,
-} from "@/components/ui/field";
-
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Имя должно содержать минимум 2 символа")
-    .max(50, "Имя должно содержать максимум 50 символов"),
-  email: z
-    .string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email"),
-  password: z
-    .string()
-    .min(8, "Пароль должен содержать минимум 8 символов")
-    .regex(/[A-Z]/, "Пароль должен содержать хотя бы одну заглавную букву")
-    .regex(/[a-z]/, "Пароль должен содержать хотя бы одну строчную букву")
-    .regex(/[0-9]/, "Пароль должен содержать хотя бы одну цифру"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Пароли не совпадают",
-  path: ["confirmPassword"],
-});
 
 export function RegisterForm() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  async function onSubmit(data: z.infer<typeof formSchema>) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
     // TODO: Implement actual registration
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert(`Регистрация выполнена: ${data.email}`);
+    alert("Регистрация выполнена (заглушка)");
+    setIsLoading(false);
     router.push("/login");
-  }
+  };
 
   const handleOAuthLogin = (provider: string) => {
     alert(`Регистрация через ${provider} (заглушка)`);
@@ -94,92 +61,49 @@ export function RegisterForm() {
           </div>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <Controller
-            name="name"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Имя</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="text"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="Ваше имя"
-                  autoComplete="name"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Имя</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Ваше имя"
+              required
+            />
+          </div>
 
-          <Controller
-            name="email"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
 
-          <Controller
-            name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Пароль</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                />
-                <FieldDescription>
-                  Минимум 8 символов, включая заглавную букву, строчную букву и цифру
-                </FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password">Пароль</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-          <Controller
-            name="confirmPassword"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Подтвердите пароль</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? "Регистрация..." : "Зарегистрироваться"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Регистрация..." : "Зарегистрироваться"}
           </Button>
         </form>
 

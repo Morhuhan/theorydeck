@@ -1,49 +1,30 @@
 // components/auth/LoginForm.tsx
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Layers } from "lucide-react";
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-} from "@/components/ui/field";
-
-const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email"),
-  password: z
-    .string()
-    .min(6, "Пароль должен содержать минимум 6 символов"),
-});
 
 export function LoginForm() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  async function onSubmit(data: z.infer<typeof formSchema>) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
     // TODO: Implement actual login
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert(`Вход выполнен: ${data.email}`);
+    alert("Вход выполнен (заглушка)");
+    setIsLoading(false);
     router.push("/");
-  }
+  };
 
   const handleOAuthLogin = (provider: string) => {
     alert(`Вход через ${provider} (заглушка)`);
@@ -80,59 +61,37 @@ export function LoginForm() {
           </div>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <Controller
-            name="email"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
 
-          <Controller
-            name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <div className="flex items-center justify-between">
-                  <FieldLabel htmlFor={field.name}>Пароль</FieldLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-muted-foreground hover:underline"
-                  >
-                    Забыли пароль?
-                  </Link>
-                </div>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Пароль</Label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                Забыли пароль?
+              </Link>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? "Вход..." : "Войти"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Вход..." : "Войти"}
           </Button>
         </form>
       </CardContent>
