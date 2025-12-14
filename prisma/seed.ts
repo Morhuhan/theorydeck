@@ -1,14 +1,13 @@
 import 'dotenv/config';
 import { PrismaClient } from "@prisma/client";
 import { 
-  UserRole, 
+  UserRole,
   TheoryStatus, 
   Stance, 
   CardStatus 
 } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import bcrypt from 'bcryptjs';
 
 if (!process.env.DIRECT_URL) {
   throw new Error('DIRECT_URL environment variable is not set. Please check your .env file.');
@@ -41,30 +40,11 @@ async function main() {
 
   await prisma.report.deleteMany();
   await prisma.vote.deleteMany();
-  await prisma.comment.deleteMany();
   await prisma.evidenceCard.deleteMany();
   await prisma.theory.deleteMany();
   await prisma.session.deleteMany();
   await prisma.account.deleteMany();
   await prisma.user.deleteMany();
-
-  const hashedPassword = await bcrypt.hash('password123', 10);
-
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@theorydeck.com',
-      name: 'Admin User',
-      role: UserRole.ADMIN,
-    },
-  });
-
-  const moderator = await prisma.user.create({
-    data: {
-      email: 'moderator@theorydeck.com',
-      name: 'Moderator User',
-      role: UserRole.MODERATOR,
-    },
-  });
 
   const user1 = await prisma.user.create({
     data: {
@@ -207,7 +187,6 @@ async function main() {
     },
   });
 
-  // Создание голосов
   await prisma.vote.createMany({
     data: [
       { userId: user1.id, cardId: card1.id, strength: 8 },
@@ -230,7 +209,7 @@ async function main() {
 
   console.log('✅ Seed completed successfully!');
   console.log(`Created:`);
-  console.log(`- 5 users (1 admin, 1 moderator, 3 regular users)`);
+  console.log(`- 3 users`);
   console.log(`- 3 theories`);
   console.log(`- 6 evidence cards`);
   console.log(`- 15 votes`);
