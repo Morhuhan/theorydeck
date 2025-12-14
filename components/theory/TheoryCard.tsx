@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface TheoryCardProps {
   slug: string;
@@ -16,7 +16,6 @@ interface TheoryCardProps {
   status: string;
   forPercent: number;
   cardCount: number;
-  commentCount: number;
 }
 
 export function TheoryCard({
@@ -29,7 +28,6 @@ export function TheoryCard({
   status,
   forPercent,
   cardCount,
-  commentCount,
 }: TheoryCardProps) {
   const statusColors: Record<string, string> = {
     ACTIVE: "bg-green-500/10 text-green-500 border-green-500/20",
@@ -91,10 +89,6 @@ export function TheoryCard({
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
               {cardCount} карточек
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              {commentCount}
             </span>
           </div>
         </CardFooter>

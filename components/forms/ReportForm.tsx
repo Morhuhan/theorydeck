@@ -17,7 +17,7 @@ import {
 interface ReportFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  targetType: "theory" | "card" | "comment";
+  targetType: "theory" | "card";
   targetId?: string;
 }
 
@@ -39,7 +39,6 @@ export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) 
   const targetLabels = {
     theory: "теорию",
     card: "карточку",
-    comment: "комментарий",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

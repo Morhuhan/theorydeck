@@ -1,4 +1,3 @@
-// components/theory/TheoryList.tsx
 "use client";
 
 import { TheoryCard } from "./TheoryCard";
@@ -14,7 +13,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 35,
     cardCount: 6,
-    commentCount: 47,
   },
   {
     slug: "remote-work-more-productive",
@@ -26,7 +24,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 62,
     cardCount: 12,
-    commentCount: 89,
   },
   {
     slug: "electric-cars-not-green",
@@ -38,7 +35,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 28,
     cardCount: 18,
-    commentCount: 156,
   },
   {
     slug: "crypto-future-of-finance",
@@ -50,7 +46,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 41,
     cardCount: 24,
-    commentCount: 203,
   },
   {
     slug: "social-media-mental-health",
@@ -62,7 +57,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 71,
     cardCount: 15,
-    commentCount: 94,
   },
   {
     slug: "nuclear-energy-safest",
@@ -74,7 +68,6 @@ const mockTheories = [
     status: "ACTIVE",
     forPercent: 68,
     cardCount: 9,
-    commentCount: 67,
   },
 ];
 
