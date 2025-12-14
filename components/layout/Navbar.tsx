@@ -17,12 +17,6 @@ export function Navbar() {
           <span>TheoryDeck</span>
         </Link>
 
-        <nav className="flex items-center gap-6 ml-6">
-          <Link href="/explore" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Обзор
-          </Link>
-        </nav>
-
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link href="/theory/new">
