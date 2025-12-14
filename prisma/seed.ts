@@ -1,13 +1,14 @@
 import 'dotenv/config';
 import { PrismaClient } from "@prisma/client";
-import { 
+import {
   UserRole,
-  TheoryStatus, 
-  Stance, 
-  CardStatus 
+  TheoryStatus,
+  Stance,
+  CardStatus
 } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import bcrypt from "bcryptjs";
 
 if (!process.env.DIRECT_URL) {
   throw new Error('DIRECT_URL environment variable is not set. Please check your .env file.');
@@ -46,10 +47,15 @@ async function main() {
   await prisma.account.deleteMany();
   await prisma.user.deleteMany();
 
+  const password1 = await bcrypt.hash('alice123', 10);
+  const password2 = await bcrypt.hash('bob123', 10);
+  const password3 = await bcrypt.hash('charlie123', 10);
+
   const user1 = await prisma.user.create({
     data: {
       email: 'alice@example.com',
       name: 'Alice Johnson',
+      password: password1,
       role: UserRole.USER,
     },
   });
@@ -58,6 +64,7 @@ async function main() {
     data: {
       email: 'bob@example.com',
       name: 'Bob Smith',
+      password: password2,
       role: UserRole.USER,
     },
   });
@@ -66,6 +73,7 @@ async function main() {
     data: {
       email: 'charlie@example.com',
       name: 'Charlie Davis',
+      password: password3,
       role: UserRole.USER,
     },
   });
@@ -213,6 +221,11 @@ async function main() {
   console.log(`- 3 theories`);
   console.log(`- 6 evidence cards`);
   console.log(`- 15 votes`);
+  console.log('');
+  console.log('👤 User credentials:');
+  console.log(`1. ${user1.email} / alice123`);
+  console.log(`2. ${user2.email} / bob123`);
+  console.log(`3. ${user3.email} / charlie123`);
 }
 
 main()
