@@ -1,5 +1,6 @@
 // components/home/Hero.tsx
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 
 export function Hero() {
@@ -12,15 +13,17 @@ export function Hero() {
         Исследуйте теории, добавляйте доказательства, голосуйте за силу аргументов. 
         Узнайте, что думает сообщество на основе фактов, а не эмоций.
       </p>
-      <div className="flex items-center justify-center gap-4">
-        <Button size="lg">
-          <Plus className="h-4 w-4 mr-2" />
-          Создать теорию
-        </Button>
-        <Button size="lg" variant="outline">
-          <Search className="h-4 w-4 mr-2" />
-          Найти теорию
-        </Button>
+      <div className="flex flex-col items-center gap-4 max-w-2xl mx-auto">
+
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Найти теорию..."
+            className="pl-10 h-12 text-base"
+          />
+        </div>
+
       </div>
     </div>
   );
