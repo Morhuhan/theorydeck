@@ -6,21 +6,18 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
-    // Проверка доступа к админ-панели
     if (pathname.startsWith("/admin")) {
       if (token?.role !== "ADMIN") {
         return NextResponse.redirect(new URL("/", req.url));
       }
     }
 
-    // Проверка доступа к модерации
     if (pathname.startsWith("/moderation")) {
       if (token?.role !== "ADMIN" && token?.role !== "MODERATOR") {
         return NextResponse.redirect(new URL("/", req.url));
       }
     }
 
-    // Проверка авторизации для создания теорий
     if (pathname.startsWith("/theory/new")) {
       if (!token) {
         return NextResponse.redirect(new URL("/login", req.url));
@@ -34,7 +31,6 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname;
 
-        // Публичные маршруты
         if (
           pathname === "/" ||
           pathname.startsWith("/login") ||
@@ -44,7 +40,6 @@ export default withAuth(
           return true;
         }
 
-        // Для всех остальных защищенных маршрутов требуется авторизация
         return !!token;
       },
     },
