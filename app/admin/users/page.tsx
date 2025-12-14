@@ -1,6 +1,14 @@
+import { redirect } from "next/navigation";
 import { UsersManagement } from "@/components/admin/UsersManagement";
+import { requireAdmin } from "@/lib/auth/auth-helpers";
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage() {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    redirect("/");
+  }
+
   return (
     <div className="py-8">
       <div className="mb-6">

@@ -1,6 +1,14 @@
+import { redirect } from "next/navigation";
 import { ReportsModeration } from "@/components/moderation/ReportsModeration";
+import { requireModerator } from "@/lib/auth/auth-helpers";
 
-export default function ModerationReportsPage() {
+export default async function ModerationReportsPage() {
+  try {
+    await requireModerator();
+  } catch (error) {
+    redirect("/");
+  }
+
   return (
     <div className="py-8">
       <div className="mb-6">
