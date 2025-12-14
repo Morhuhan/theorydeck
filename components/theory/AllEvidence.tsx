@@ -15,7 +15,6 @@ interface Evidence {
   stance: Stance;
   voteCount: number;
   averageStrength: number;
-  commentCount: number;
   authorName?: string;
 }
 

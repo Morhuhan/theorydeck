@@ -23,7 +23,6 @@ model User {
   theories      Theory[]
   evidenceCards EvidenceCard[]
   votes         Vote[]
-  comments      Comment[]
   reports       Report[]
   
   @@index([email])
@@ -90,7 +89,6 @@ model Theory {
   author      User          @relation(fields: [authorId], references: [id])
   
   evidenceCards EvidenceCard[]
-  comments      Comment[]
   reports       Report[]
   
   @@index([slug])
@@ -127,7 +125,6 @@ model EvidenceCard {
   author      User            @relation(fields: [authorId], references: [id])
   
   votes       Vote[]
-  comments    Comment[]
   reports     Report[]
   
   @@index([theoryId, stance, status])
@@ -161,31 +158,6 @@ model Vote {
   
   @@unique([userId, cardId])
   @@index([cardId])
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  
-  theoryId  String?
-  theory    Theory?  @relation(fields: [theoryId], references: [id], onDelete: Cascade)
-  
-  cardId    String?
-  card      EvidenceCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  
-  parentId  String?
-  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
-  
-  @@index([theoryId])
-  @@index([cardId])
-  @@index([parentId])
 }
 
 model Report {

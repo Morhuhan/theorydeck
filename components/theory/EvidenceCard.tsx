@@ -3,8 +3,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, MessageSquare, ThumbsUp } from "lucide-react";
+import { ExternalLink, ThumbsUp } from "lucide-react";
 
 export type Stance = "FOR" | "AGAINST";
 
@@ -17,7 +16,6 @@ interface EvidenceCardProps {
   stance: Stance;
   voteCount: number;
   averageStrength: number;
-  commentCount: number;
   authorName?: string;
 }
 
@@ -29,7 +27,6 @@ export function EvidenceCard({
   stance,
   voteCount,
   averageStrength,
-  commentCount,
   authorName,
 }: EvidenceCardProps) {
   const stanceColor = stance === "FOR" 
@@ -76,13 +73,7 @@ export function EvidenceCard({
       
       <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{authorName || "Аноним"}</span>
-        <div className="flex items-center gap-3">
-          <span>{voteCount} оценок</span>
-          <Button variant="ghost" size="sm" className="h-6 px-2">
-            <MessageSquare className="h-3 w-3 mr-1" />
-            {commentCount}
-          </Button>
-        </div>
+        <span>{voteCount} оценок</span>
       </CardFooter>
     </Card>
   );

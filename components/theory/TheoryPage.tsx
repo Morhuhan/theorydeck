@@ -1,12 +1,15 @@
 // components/theory/TheoryPage.tsx
 "use client";
 
+import { useState } from "react";
 import { TheoryHeader } from "./TheoryHeader";
 import { TheoryTLDR } from "./TheoryTLDR";
 import { ConfidenceBar } from "./ConfidenceBar";
 import { TopEvidence } from "./TopEvidence";
 import { AllEvidence } from "./AllEvidence";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EvidenceForm } from "@/components/forms/EvidenceForm";
 
 const mockTheories: Record<string, {
   id: string;
@@ -55,7 +58,6 @@ const mockForCards = [
     stance: "FOR" as const,
     voteCount: 42,
     averageStrength: 7.2,
-    commentCount: 15,
     authorName: "TechAnalyst",
   },
   {
@@ -64,7 +66,6 @@ const mockForCards = [
     stance: "FOR" as const,
     voteCount: 28,
     averageStrength: 6.1,
-    commentCount: 8,
     authorName: "IndustryWatcher",
   },
   {
@@ -75,7 +76,6 @@ const mockForCards = [
     stance: "FOR" as const,
     voteCount: 35,
     averageStrength: 5.8,
-    commentCount: 22,
     authorName: "AIEnthusiast",
   },
 ];
@@ -87,7 +87,6 @@ const mockAgainstCards = [
     stance: "AGAINST" as const,
     voteCount: 56,
     averageStrength: 8.1,
-    commentCount: 31,
     authorName: "SeniorDev",
   },
   {
@@ -99,7 +98,6 @@ const mockAgainstCards = [
     stance: "AGAINST" as const,
     voteCount: 48,
     averageStrength: 7.8,
-    commentCount: 19,
     authorName: "SecurityExpert",
   },
   {
@@ -108,7 +106,6 @@ const mockAgainstCards = [
     stance: "AGAINST" as const,
     voteCount: 38,
     averageStrength: 6.9,
-    commentCount: 12,
     authorName: "HistoryBuff",
   },
 ];
@@ -118,6 +115,8 @@ interface TheoryPageProps {
 }
 
 export function TheoryPage({ slug }: TheoryPageProps) {
+  const [isAddCardOpen, setIsAddCardOpen] = useState(false);
+  
   const theory = slug ? (mockTheories[slug] || defaultTheory) : defaultTheory;
   
   const forScore = mockForCards.reduce((sum, card) => sum + card.averageStrength * card.voteCount, 0);
@@ -127,7 +126,11 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   const topAgainst = [...mockAgainstCards].sort((a, b) => b.averageStrength - a.averageStrength).slice(0, 3);
 
   const handleAddCard = () => {
-    alert("Функция добавления карточки (заглушка)");
+    setIsAddCardOpen(true);
+  };
+
+  const handleCardAdded = () => {
+    setIsAddCardOpen(false);
   };
 
   return (
@@ -158,6 +161,19 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         againstCards={mockAgainstCards}
         onAddCard={handleAddCard}
       />
+
+      <Dialog open={isAddCardOpen} onOpenChange={setIsAddCardOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Добавить доказательство</DialogTitle>
+          </DialogHeader>
+          <EvidenceForm 
+            theoryId={theory.id}
+            onSuccess={handleCardAdded}
+            onCancel={() => setIsAddCardOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
