@@ -45,15 +45,41 @@ export function TheoryForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // TODO: Implement actual theory creation
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Теория создана (заглушка)");
-    setIsLoading(false);
-    router.push("/");
+    const formData = new FormData(e.currentTarget);
+
+    const theoryData = {
+      title: formData.get("title") as string,
+      claim: formData.get("claim") as string,
+      tldr: formData.get("tldr") as string,
+      realm: formData.get("realm") as string || null,
+      topic: formData.get("topic") as string || null,
+      tags,
+    };
+
+    try {
+      const response = await fetch("/api/theories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(theoryData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при создании теории");
+      }
+
+      router.push(`/theory/${data.slug}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Произошла ошибка");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,8 +97,10 @@ export function TheoryForm() {
             <Label htmlFor="title">Заголовок теории *</Label>
             <Input
               id="title"
+              name="title"
               placeholder="Например: ИИ заменит программистов к 2030 году"
               required
+              maxLength={100}
             />
             <p className="text-xs text-muted-foreground">
               Краткая формулировка утверждения (до 100 символов)
@@ -83,6 +111,7 @@ export function TheoryForm() {
             <Label htmlFor="claim">Полная формулировка *</Label>
             <Textarea
               id="claim"
+              name="claim"
               placeholder="Развёрнутое описание того, что именно утверждается..."
               rows={3}
               required
@@ -96,6 +125,7 @@ export function TheoryForm() {
             <Label htmlFor="tldr">TL;DR (краткое описание) *</Label>
             <Textarea
               id="tldr"
+              name="tldr"
               placeholder="Почему эта теория обсуждается? Какой контекст важен?"
               rows={3}
               required
@@ -108,7 +138,7 @@ export function TheoryForm() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="realm">Раздел</Label>
-              <Select>
+              <Select name="realm">
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите раздел" />
                 </SelectTrigger>
@@ -124,7 +154,7 @@ export function TheoryForm() {
 
             <div className="space-y-2">
               <Label htmlFor="topic">Тема</Label>
-              <Input id="topic" placeholder="Например: ИИ, HR, Крипто" />
+              <Input id="topic" name="topic" placeholder="Например: ИИ, HR, Крипто" />
             </div>
           </div>
 

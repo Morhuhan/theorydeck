@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${inter.className} min-h-screen flex flex-col bg-background antialiased`}>
-        <Navbar />
-        <main className="flex-1 container mx-auto px-4">
-          {children}
-        </main>
-        <Footer />
+        <SessionProvider>
+          <Navbar />
+          <main className="flex-1 container mx-auto px-4">
+            {children}
+          </main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );

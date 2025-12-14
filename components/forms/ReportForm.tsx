@@ -18,7 +18,7 @@ interface ReportFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   targetType: "theory" | "card";
-  targetId?: string;
+  targetId: string;
 }
 
 const REPORT_REASONS = [
@@ -31,7 +31,7 @@ const REPORT_REASONS = [
   { value: "OTHER", label: "Другое" },
 ];
 
-export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) {
+export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportFormProps) {
   const [reason, setReason] = useState<string>("");
   const [details, setDetails] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -47,13 +47,37 @@ export function ReportForm({ open, onOpenChange, targetType }: ReportFormProps) 
 
     setIsLoading(true);
 
-    // TODO: Implement actual report submission
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    alert("Жалоба отправлена (заглушка)");
-    setIsLoading(false);
-    setReason("");
-    setDetails("");
-    onOpenChange(false);
+    const reportData = {
+      reason,
+      details: details || null,
+      theoryId: targetType === "theory" ? targetId : null,
+      cardId: targetType === "card" ? targetId : null,
+    };
+
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при отправке жалобы");
+      }
+
+      setReason("");
+      setDetails("");
+      onOpenChange(false);
+      alert("Жалоба успешно отправлена");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Произошла ошибка");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

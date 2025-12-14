@@ -1,105 +1,98 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { TheoryCard } from "./TheoryCard";
 
-const mockTheories = [
-  {
-    id: "theory-1",
-    slug: "ai-will-replace-programmers",
-    title: "ИИ полностью заменит программистов к 2030 году",
-    claim: "Развитие LLM и генеративных моделей приведёт к тому, что традиционное программирование станет ненужным. ИИ сможет самостоятельно писать код, тестировать и деплоить приложения без участия человека.",
-    tldr: "Развитие LLM приведёт к тому, что традиционное программирование станет ненужным.",
-    realm: "Технологии",
-    topic: "ИИ",
-    tags: ["AI", "Программирование", "Будущее работы"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-03-01"),
-    authorName: "Алексей Новак",
-    evidenceCount: 6,
-    forPercent: 35,
-  },
-  {
-    id: "theory-2",
-    slug: "remote-work-more-productive",
-    title: "Удалённая работа продуктивнее офисной",
-    claim: "Многочисленные исследования показывают, что сотрудники на удалёнке работают эффективнее, меньше выгорают и имеют лучший work-life balance по сравнению с офисными работниками.",
-    tldr: "Исследования показывают, что сотрудники на удалёнке работают эффективнее и меньше выгорают.",
-    realm: "Бизнес",
-    topic: "HR",
-    tags: ["Удалёнка", "Продуктивность", "Офис"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-02-15"),
-    authorName: "Мария Семёнова",
-    evidenceCount: 12,
-    forPercent: 62,
-  },
-  {
-    id: "theory-3",
-    slug: "electric-cars-not-green",
-    title: "Электромобили не экологичнее бензиновых",
-    claim: "Если учесть полный жизненный цикл, включая производство батарей, источники электроэнергии и утилизацию, углеродный след электромобилей сопоставим с современными бензиновыми автомобилями.",
-    tldr: "Если учесть производство батарей и источники электроэнергии, углеродный след сопоставим.",
-    realm: "Экология",
-    topic: "Транспорт",
-    tags: ["Электромобили", "CO2", "Энергетика"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-02-28"),
-    authorName: "Дмитрий Козлов",
-    evidenceCount: 18,
-    forPercent: 28,
-  },
-  {
-    id: "theory-4",
-    slug: "crypto-future-of-finance",
-    title: "Криптовалюты заменят традиционные финансы",
-    claim: "Децентрализованные финансы (DeFi), смарт-контракты и цифровые активы неизбежно вытеснят банки, традиционные платёжные системы и централизованные финансовые институты.",
-    tldr: "Децентрализованные финансы неизбежно вытеснят банки и традиционные платёжные системы.",
-    realm: "Финансы",
-    topic: "Крипто",
-    tags: ["Bitcoin", "DeFi", "Банки"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-02-10"),
-    authorName: "Сергей Биткоинов",
-    evidenceCount: 24,
-    forPercent: 41,
-  },
-  {
-    id: "theory-5",
-    slug: "social-media-mental-health",
-    title: "Соцсети разрушают ментальное здоровье молодёжи",
-    claim: "Многочисленные исследования доказывают сильную корреляцию между временем, проведённым в социальных сетях, и уровнем депрессии, тревожности, нарушениями сна и низкой самооценкой у подростков.",
-    tldr: "Корреляция между использованием соцсетей и депрессией/тревожностью у подростков доказана.",
-    realm: "Общество",
-    topic: "Психология",
-    tags: ["Соцсети", "Депрессия", "Подростки"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-01-25"),
-    authorName: "Анна Психологова",
-    evidenceCount: 15,
-    forPercent: 71,
-  },
-  {
-    id: "theory-6",
-    slug: "nuclear-energy-safest",
-    title: "Атомная энергетика — самый безопасный источник энергии",
-    claim: "Если рассчитать количество смертей на единицу произведённой энергии, ядерная энергетика оказывается безопаснее солнечной, ветровой, гидро- и особенно угольной энергетики.",
-    tldr: "По числу смертей на единицу произведённой энергии ядерная энергетика безопаснее всех альтернатив.",
-    realm: "Экология",
-    topic: "Энергетика",
-    tags: ["Атом", "Безопасность", "Статистика"],
-    status: "ACTIVE" as const,
-    createdAt: new Date("2024-02-20"),
-    authorName: "Игорь Физиков",
-    evidenceCount: 9,
-    forPercent: 68,
-  },
-];
+interface Theory {
+  id: string;
+  slug: string;
+  title: string;
+  claim: string;
+  tldr: string;
+  realm?: string | null;
+  topic?: string | null;
+  tags: string[];
+  status: string;
+  createdAt: string;
+  author: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  };
+  _count: {
+    evidenceCards: number;
+  };
+}
 
 export function TheoryList() {
+  const [theories, setTheories] = useState<Theory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadTheories() {
+      try {
+        const response = await fetch("/api/theories");
+
+        if (!response.ok) {
+          throw new Error("Ошибка при загрузке теорий");
+        }
+
+        const data = await response.json();
+        setTheories(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Произошла ошибка");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadTheories();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="mb-8 text-center py-12">
+        <p className="text-muted-foreground">Загрузка теорий...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mb-8 text-center py-12">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (theories.length === 0) {
+    return (
+      <div className="mb-8 text-center py-12">
+        <p className="text-muted-foreground">Пока нет теорий. Создайте первую!</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-8xl mx-auto">
-      {mockTheories.map((theory) => (
-        <TheoryCard key={theory.id} {...theory} />
+      {theories.map((theory) => (
+        <TheoryCard
+          key={theory.id}
+          id={theory.id}
+          slug={theory.slug}
+          title={theory.title}
+          claim={theory.claim}
+          tldr={theory.tldr}
+          realm={theory.realm || undefined}
+          topic={theory.topic || undefined}
+          tags={theory.tags}
+          status={theory.status as any}
+          createdAt={new Date(theory.createdAt)}
+          authorName={theory.author.name || theory.author.email || "Аноним"}
+          evidenceCount={theory._count.evidenceCards}
+          forPercent={50}
+        />
       ))}
     </div>
   );

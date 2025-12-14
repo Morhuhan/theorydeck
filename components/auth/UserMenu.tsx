@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,9 +18,9 @@ import { LogOut, FileText } from "lucide-react";
 
 interface UserMenuProps {
   user?: {
-    name: string;
-    email: string;
-    image?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
   } | null;
 }
 
@@ -28,9 +29,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
   const handleLogout = async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    alert("Выход выполнен (заглушка)");
-    setIsLoading(false);
+    await signOut({ callbackUrl: "/" });
   };
 
   if (!user) {
@@ -47,11 +46,13 @@ export function UserMenu({ user }: UserMenuProps) {
   }
 
   const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user.email?.substring(0, 2).toUpperCase() || "U";
 
   return (
     <DropdownMenu>
@@ -66,7 +67,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuContent className="w-56" align="end">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium">{user.name}</p>
+            <p className="text-sm font-medium">{user.name || "Пользователь"}</p>
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>

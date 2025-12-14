@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn } from "@/lib/utils";
 
 interface VoteFormProps {
-  cardId?: string;
+  cardId: string;
   currentVote?: number | null;
   onVote?: (strength: number) => void;
 }
@@ -20,7 +20,7 @@ const VOTE_OPTIONS = [
   { value: 10, label: "Очень сильное", color: "bg-green-100 hover:bg-green-200" },
 ];
 
-export function VoteForm({ currentVote, onVote }: VoteFormProps) {
+export function VoteForm({ cardId, currentVote, onVote }: VoteFormProps) {
   const [selectedVote, setSelectedVote] = useState<number | null>(currentVote ?? null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,10 +28,28 @@ export function VoteForm({ currentVote, onVote }: VoteFormProps) {
     setIsLoading(true);
     setSelectedVote(strength);
 
-    // TODO: Implement actual voting
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    onVote?.(strength);
-    setIsLoading(false);
+    try {
+      const response = await fetch("/api/votes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cardId, strength }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при голосовании");
+      }
+
+      onVote?.(strength);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Произошла ошибка");
+      setSelectedVote(currentVote ?? null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

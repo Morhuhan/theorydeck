@@ -14,16 +14,47 @@ import { Layers } from "lucide-react";
 export function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // TODO: Implement actual registration
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Регистрация выполнена (заглушка)");
-    setIsLoading(false);
-    router.push("/login");
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const name = formData.get("name") as string;
+
+    // Проверка паролей
+    if (password !== confirmPassword) {
+      setError("Пароли не совпадают");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка регистрации");
+      }
+
+      router.push("/login?registered=true");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOAuthLogin = (provider: string) => {
@@ -62,10 +93,17 @@ export function RegisterForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="name">Имя</Label>
             <Input
               id="name"
+              name="name"
               type="text"
               placeholder="Ваше имя"
               required
@@ -76,6 +114,7 @@ export function RegisterForm() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="you@example.com"
               required
@@ -86,9 +125,11 @@ export function RegisterForm() {
             <Label htmlFor="password">Пароль</Label>
             <Input
               id="password"
+              name="password"
               type="password"
               placeholder="••••••••"
               required
+              minLength={6}
             />
           </div>
 
@@ -96,9 +137,11 @@ export function RegisterForm() {
             <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
             <Input
               id="confirmPassword"
+              name="confirmPassword"
               type="password"
               placeholder="••••••••"
               required
+              minLength={6}
             />
           </div>
 

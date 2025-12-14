@@ -3,7 +3,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,17 +14,40 @@ import { Layers } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const registered = searchParams.get("registered");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // TODO: Implement actual login
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Вход выполнен (заглушка)");
-    setIsLoading(false);
-    router.push("/");
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Неверный email или пароль");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setError("Произошла ошибка при входе");
+      setIsLoading(false);
+    }
   };
 
   const handleOAuthLogin = (provider: string) => {
@@ -43,6 +67,12 @@ export function LoginForm() {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {registered && (
+          <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
+            Регистрация успешна! Теперь вы можете войти.
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" onClick={() => handleOAuthLogin("Google")}>
             Google
@@ -62,10 +92,17 @@ export function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="you@example.com"
               required
@@ -84,6 +121,7 @@ export function LoginForm() {
             </div>
             <Input
               id="password"
+              name="password"
               type="password"
               placeholder="••••••••"
               required

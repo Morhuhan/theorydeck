@@ -1,63 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-// Моковые данные для примера
-const mockReports = [
-  {
-    id: "1",
-    type: "theory",
-    targetTitle: "Теория о пришельцах на Земле",
-    targetId: "theory-1",
-    reason: "MISINFORMATION",
-    details: "Содержит непроверенные факты и дезинформацию",
-    status: "PENDING",
-    reporterName: "Иван Петров",
-    createdAt: new Date("2025-01-10"),
-  },
-  {
-    id: "2",
-    type: "evidence",
-    targetTitle: "Доказательство против теории плоской Земли",
-    targetId: "evidence-1",
-    reason: "SPAM",
-    details: "Многократное повторение одного и того же контента",
-    status: "PENDING",
-    reporterName: "Мария Сидорова",
-    createdAt: new Date("2025-01-11"),
-  },
-  {
-    id: "3",
-    type: "theory",
-    targetTitle: "Эволюция человека",
-    targetId: "theory-2",
-    reason: "INAPPROPRIATE",
-    details: "Содержит оскорбительные высказывания",
-    status: "REVIEWED",
-    reporterName: "Петр Иванов",
-    createdAt: new Date("2025-01-09"),
-  },
-  {
-    id: "4",
-    type: "evidence",
-    targetTitle: "Источник о климатических изменениях",
-    targetId: "evidence-2",
-    reason: "SPOILER",
-    details: "Раскрывает важную информацию",
-    status: "RESOLVED",
-    reporterName: "Анна Смирнова",
-    createdAt: new Date("2025-01-08"),
-  },
-];
 
 const reasonLabels: Record<string, string> = {
   SPAM: "Спам",
@@ -86,9 +37,33 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
 export function ReportsModeration() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [resolutionNote, setResolutionNote] = useState("");
+  const [reports, setReports] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredReports = mockReports.filter((report) => {
+  const loadReports = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/reports");
+
+      if (!response.ok) {
+        throw new Error("Ошибка при загрузке жалоб");
+      }
+
+      const data = await response.json();
+      setReports(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  const filteredReports = reports.filter((report) => {
     if (activeTab === "all") return true;
     if (activeTab === "pending") return report.status === "PENDING";
     if (activeTab === "reviewed") return report.status === "REVIEWED";
@@ -96,12 +71,44 @@ export function ReportsModeration() {
     return true;
   });
 
-  const handleAction = (reportId: string, action: string) => {
-    console.log(`Action ${action} for report ${reportId}`);
-    // Здесь будет вызов API для изменения статуса жалобы
-    setSelectedReport(null);
-    setResolutionNote("");
+  const handleAction = async (reportId: string, action: string) => {
+    try {
+      const response = await fetch(`/api/reports/${reportId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action, status: action === "DELETE" ? "RESOLVED" : action }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка при обработке жалобы");
+      }
+
+      setSelectedReport(null);
+      await loadReports();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Произошла ошибка");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Загрузка жалоб...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  const pendingCount = reports.filter(r => r.status === "PENDING").length;
 
   return (
     <div className="space-y-6">
@@ -109,7 +116,7 @@ export function ReportsModeration() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all">Все</TabsTrigger>
           <TabsTrigger value="pending">
-            Ожидают <Badge variant="destructive" className="ml-2">{mockReports.filter(r => r.status === "PENDING").length}</Badge>
+            Ожидают {pendingCount > 0 && <Badge variant="destructive" className="ml-2">{pendingCount}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="reviewed">Рассмотренные</TabsTrigger>
           <TabsTrigger value="resolved">Завершённые</TabsTrigger>
@@ -127,16 +134,16 @@ export function ReportsModeration() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <CardTitle className="text-lg">
-                        {report.targetTitle}
+                        {report.theory?.title || report.card?.content?.substring(0, 100) || "Удалено"}
                       </CardTitle>
                       <div className="flex gap-2 items-center text-sm text-muted-foreground">
                         <Badge variant="outline">
-                          {report.type === "theory" ? "Теория" : "Доказательство"}
+                          {report.theory ? "Теория" : "Доказательство"}
                         </Badge>
                         <span>•</span>
-                        <span>От: {report.reporterName}</span>
+                        <span>От: {report.reporter.name || report.reporter.email}</span>
                         <span>•</span>
-                        <span>{report.createdAt.toLocaleDateString("ru-RU")}</span>
+                        <span>{new Date(report.createdAt).toLocaleDateString("ru-RU")}</span>
                       </div>
                     </div>
                     <Badge variant={statusColors[report.status]}>
@@ -163,16 +170,6 @@ export function ReportsModeration() {
 
                   {selectedReport === report.id ? (
                     <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`note-${report.id}`}>Примечание к решению</Label>
-                        <Textarea
-                          id={`note-${report.id}`}
-                          placeholder="Опишите принятое решение..."
-                          value={resolutionNote}
-                          onChange={(e) => setResolutionNote(e.target.value)}
-                          rows={3}
-                        />
-                      </div>
                       <div className="flex gap-2">
                         <Button
                           variant="default"
@@ -194,10 +191,7 @@ export function ReportsModeration() {
                         </Button>
                         <Button
                           variant="ghost"
-                          onClick={() => {
-                            setSelectedReport(null);
-                            setResolutionNote("");
-                          }}
+                          onClick={() => setSelectedReport(null)}
                         >
                           Отмена
                         </Button>
@@ -205,16 +199,16 @@ export function ReportsModeration() {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(`/theory/${report.targetId}`, "_blank")}
-                      >
-                        Просмотреть
-                      </Button>
-                      {report.status === "PENDING" && (
+                      {report.theory && (
                         <Button
-                          onClick={() => setSelectedReport(report.id)}
+                          variant="outline"
+                          onClick={() => window.open(`/theory/${report.theory.slug}`, "_blank")}
                         >
+                          Просмотреть
+                        </Button>
+                      )}
+                      {report.status === "PENDING" && (
+                        <Button onClick={() => setSelectedReport(report.id)}>
                           Рассмотреть
                         </Button>
                       )}

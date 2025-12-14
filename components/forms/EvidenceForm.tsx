@@ -10,25 +10,55 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface EvidenceFormProps {
-  theoryId?: string;
+  theoryId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }
 
-export function EvidenceForm({ open, onOpenChange, onSuccess }: EvidenceFormProps) {
+export function EvidenceForm({ theoryId, open, onOpenChange, onSuccess }: EvidenceFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [stance, setStance] = useState<"FOR" | "AGAINST">("FOR");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // TODO: Implement actual evidence creation
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Карточка добавлена (заглушка)");
-    setIsLoading(false);
-    onSuccess?.();
+    const formData = new FormData(e.currentTarget);
+
+    const evidenceData = {
+      theoryId,
+      stance,
+      content: formData.get("content") as string,
+      source: formData.get("source") as string || null,
+      sourceTitle: formData.get("sourceTitle") as string || null,
+      context: formData.get("context") as string || null,
+    };
+
+    try {
+      const response = await fetch("/api/evidence", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(evidenceData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при добавлении доказательства");
+      }
+
+      onOpenChange(false);
+      onSuccess?.();
+      e.currentTarget.reset();
+      setStance("FOR");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Произошла ошибка");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -69,6 +99,7 @@ export function EvidenceForm({ open, onOpenChange, onSuccess }: EvidenceFormProp
               <Label htmlFor="content">Содержание *</Label>
               <Textarea
                 id="content"
+                name="content"
                 placeholder="Опишите доказательство или аргумент..."
                 rows={4}
                 required
@@ -82,6 +113,7 @@ export function EvidenceForm({ open, onOpenChange, onSuccess }: EvidenceFormProp
               <Label htmlFor="source">Источник (URL)</Label>
               <Input
                 id="source"
+                name="source"
                 type="url"
                 placeholder="https://..."
               />
@@ -91,6 +123,7 @@ export function EvidenceForm({ open, onOpenChange, onSuccess }: EvidenceFormProp
               <Label htmlFor="sourceTitle">Название источника</Label>
               <Input
                 id="sourceTitle"
+                name="sourceTitle"
                 placeholder="Например: Nature, Arxiv, BBC News"
               />
             </div>
@@ -99,6 +132,7 @@ export function EvidenceForm({ open, onOpenChange, onSuccess }: EvidenceFormProp
               <Label htmlFor="context">Контекст</Label>
               <Textarea
                 id="context"
+                name="context"
                 placeholder="Дополнительный контекст: когда, где, при каких условиях..."
                 rows={2}
               />
