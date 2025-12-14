@@ -1,98 +1,124 @@
-// components/theory/TheoryCard.tsx
 "use client";
 
-import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Calendar, MessageSquare, User, BarChart } from "lucide-react";
+import { ReportButton } from "./ReportButton";
+import { ReportModal } from "@/components/reports/ReportModal";
+import { useState } from "react";
 
 interface TheoryCardProps {
+  id: string;
   slug: string;
   title: string;
+  claim: string;
   tldr: string;
+  status: "DRAFT" | "ACTIVE" | "ARCHIVED" | "RESOLVED" | "MODERATED";
   realm?: string;
   topic?: string;
-  tags?: string[];
-  status: string;
-  forPercent: number;
-  cardCount: number;
+  tags: string[];
+  createdAt: Date;
+  authorName?: string;
+  evidenceCount?: number;
+  forPercent?: number;
 }
 
 export function TheoryCard({
+  id,
   slug,
   title,
+  claim,
   tldr,
+  status,
   realm,
   topic,
-  tags = [],
-  status,
-  forPercent,
-  cardCount,
+  tags,
+  createdAt,
+  authorName,
+  evidenceCount = 0,
+  forPercent = 0,
 }: TheoryCardProps) {
-  const statusColors: Record<string, string> = {
-    ACTIVE: "bg-green-500/10 text-green-500 border-green-500/20",
-    DRAFT: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-    ARCHIVED: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-    RESOLVED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    MODERATED: "bg-red-500/10 text-red-500 border-red-500/20",
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const handleReportSubmit = () => {
+    console.log(`Report submitted for theory ${id}`);
+    setIsReportModalOpen(false);
   };
 
-  const againstPercent = 100 - forPercent;
-
   return (
-    <Link href={`/theory/${slug}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            {realm && <span>{realm}</span>}
-            {realm && topic && <span>/</span>}
-            {topic && <span>{topic}</span>}
+    <>
+      <Card className="hover:shadow-md transition-shadow h-full flex flex-col">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">{title}</h3>
+              </div>
+              {realm && topic && (
+                <p className="text-sm text-muted-foreground">
+                  {realm} • {topic}
+                </p>
+              )}
+            </div>
+            <ReportButton 
+              targetId={id}
+              targetType="THEORY"
+              onReport={() => setIsReportModalOpen(true)}
+            />
           </div>
-          <h3 className="font-semibold leading-tight line-clamp-2">{title}</h3>
         </CardHeader>
-
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground line-clamp-2">{tldr}</p>
-
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-green-500">За {forPercent}%</span>
-              <span className="text-red-500">Против {againstPercent}%</span>
-            </div>
-            <div className="relative h-2 rounded-full overflow-hidden bg-red-500/20">
-              <div
-                className="absolute inset-y-0 left-0 bg-green-500 transition-all"
-                style={{ width: `${forPercent}%` }}
-              />
-            </div>
+        
+        <CardContent className="space-y-4 flex-1">
+          <div>
+            <h4 className="text-sm font-medium mb-1">Утверждение:</h4>
+            <p className="text-sm text-muted-foreground line-clamp-2">{claim}</p>
           </div>
-
-          <div className="flex flex-wrap gap-1">
-            <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
-              {status}
-            </Badge>
-            {tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-            {tags.length > 2 && (
-              <Badge variant="secondary" className="text-xs">
-                +{tags.length - 2}
-              </Badge>
-            )}
+          
+          <div className="p-3 bg-muted rounded-md">
+            <p className="text-sm line-clamp-2">{tldr}</p>
           </div>
+          
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </CardContent>
-
-        <CardFooter className="pt-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {cardCount} карточек
-            </span>
+        
+        <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              <span>{authorName || "Аноним"}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>{new Date(createdAt).toLocaleDateString("ru-RU")}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              <span>{evidenceCount}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <BarChart className="h-3 w-3" />
+              <span>{forPercent}% за</span>
+            </div>
           </div>
         </CardFooter>
       </Card>
-    </Link>
+
+      <ReportModal
+        open={isReportModalOpen}
+        onOpenChange={setIsReportModalOpen}
+        targetId={id}
+        targetType="THEORY"
+        targetContent={title}
+        onReportSubmit={handleReportSubmit}
+      />
+    </>
   );
 }

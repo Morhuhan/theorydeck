@@ -1,167 +1,244 @@
-// components/theory/TheoryPage.tsx
 "use client";
 
+import { TheoryCard } from "./TheoryCard";
+import { ReportButton } from "./ReportButton";
+import { ReportModal } from "@/components/reports/ReportModal";
+import { EvidenceCard } from "./EvidenceCard";
 import { useState } from "react";
-import { TheoryHeader } from "./TheoryHeader";
-import { TheoryTLDR } from "./TheoryTLDR";
-import { ConfidenceBar } from "./ConfidenceBar";
-import { TopEvidence } from "./TopEvidence";
-import { AllEvidence } from "./AllEvidence";
-import { Separator } from "@/components/ui/separator";
-import { EvidenceForm } from "@/components/forms/EvidenceForm";
-
-const mockTheories: Record<string, {
-  id: string;
-  slug: string;
-  title: string;
-  claim: string;
-  tldr: string;
-  status: string;
-  realm: string;
-  topic: string;
-  tags: string[];
-}> = {
-  "ai-will-replace-programmers": {
-    id: "1",
-    slug: "ai-will-replace-programmers",
-    title: "ИИ полностью заменит программистов к 2030 году",
-    claim: "Развитие больших языковых моделей и AI-ассистентов приведёт к тому, что традиционное программирование станет ненужным, и профессия программиста исчезнет.",
-    tldr: "С появлением GPT-4, Claude и подобных моделей многие задачи программирования автоматизируются. Сторонники считают, что через 5-7 лет ИИ сможет писать код лучше людей. Критики указывают на ограничения моделей и необходимость человеческого контроля.",
-    status: "ACTIVE",
-    realm: "Технологии",
-    topic: "ИИ",
-    tags: ["AI", "Программирование", "Будущее работы"],
-  },
-  "remote-work-more-productive": {
-    id: "2",
-    slug: "remote-work-more-productive",
-    title: "Удалённая работа продуктивнее офисной",
-    claim: "Сотрудники, работающие из дома, демонстрируют более высокую продуктивность и удовлетворённость работой по сравнению с офисными работниками.",
-    tldr: "Исследования показывают рост продуктивности на 13-20% при удалённой работе. Экономия времени на дорогу и гибкий график позволяют лучше балансировать работу и жизнь.",
-    status: "ACTIVE",
-    realm: "Бизнес",
-    topic: "HR",
-    tags: ["Удалёнка", "Продуктивность", "Офис"],
-  },
-};
-
-const defaultTheory = mockTheories["ai-will-replace-programmers"];
-
-const mockForCards = [
-  {
-    id: "1",
-    content: "GPT-4 уже может решать задачи на LeetCode уровня Hard с точностью 80%. Темпы улучшения показывают, что через несколько лет ИИ превзойдёт среднего программиста.",
-    source: "https://arxiv.org/example",
-    sourceTitle: "Arxiv: LLM Coding Capabilities",
-    context: "Исследование проведено на 500 задачах разной сложности",
-    stance: "FOR" as const,
-    voteCount: 42,
-    averageStrength: 7.2,
-    authorName: "TechAnalyst",
-  },
-  {
-    id: "2",
-    content: "Крупные компании уже сокращают наём джуниор-разработчиков, делая ставку на AI-ассистентов для рутинных задач.",
-    stance: "FOR" as const,
-    voteCount: 28,
-    averageStrength: 6.1,
-    authorName: "IndustryWatcher",
-  },
-  {
-    id: "3",
-    content: "Devin от Cognition показал возможность автономного выполнения сложных задач разработки от начала до конца.",
-    source: "https://cognition.ai/devin",
-    sourceTitle: "Cognition AI Blog",
-    stance: "FOR" as const,
-    voteCount: 35,
-    averageStrength: 5.8,
-    authorName: "AIEnthusiast",
-  },
-];
-
-const mockAgainstCards = [
-  {
-    id: "4",
-    content: "ИИ не понимает бизнес-контекст и не может принимать архитектурные решения. Программирование — это не только написание кода, но и понимание требований, коммуникация с заказчиком.",
-    stance: "AGAINST" as const,
-    voteCount: 56,
-    averageStrength: 8.1,
-    authorName: "SeniorDev",
-  },
-  {
-    id: "5",
-    content: "LLM галлюцинируют и генерируют код с уязвимостями. В критичных системах (медицина, финансы, авиация) это недопустимо.",
-    source: "https://security-research.example",
-    sourceTitle: "Security Research Paper",
-    context: "Анализ 1000 фрагментов кода, сгенерированных ChatGPT",
-    stance: "AGAINST" as const,
-    voteCount: 48,
-    averageStrength: 7.8,
-    authorName: "SecurityExpert",
-  },
-  {
-    id: "6",
-    content: "Предыдущие предсказания о 'конце программирования' (CASE tools в 90-х, no-code в 2010-х) не сбылись. Сложность софта растёт быстрее возможностей автоматизации.",
-    stance: "AGAINST" as const,
-    voteCount: 38,
-    averageStrength: 6.9,
-    authorName: "HistoryBuff",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Filter } from "lucide-react";
 
 interface TheoryPageProps {
-  slug?: string;
+  slug: string;
 }
 
 export function TheoryPage({ slug }: TheoryPageProps) {
-  const [isAddCardOpen, setIsAddCardOpen] = useState(false);
+  const [isTheoryReportModalOpen, setIsTheoryReportModalOpen] = useState(false);
   
-  const theory = slug ? (mockTheories[slug] || defaultTheory) : defaultTheory;
-  
-  const forScore = mockForCards.reduce((sum, card) => sum + card.averageStrength * card.voteCount, 0);
-  const againstScore = mockAgainstCards.reduce((sum, card) => sum + card.averageStrength * card.voteCount, 0);
-
-  const topFor = [...mockForCards].sort((a, b) => b.averageStrength - a.averageStrength).slice(0, 3);
-  const topAgainst = [...mockAgainstCards].sort((a, b) => b.averageStrength - a.averageStrength).slice(0, 3);
-
-  const handleCardAdded = () => {
-    setIsAddCardOpen(false);
+  const theory = {
+    id: "theory-123",
+    slug: slug,
+    title: "Искусственный интеллект достигнет общего интеллекта к 2030 году",
+    claim: "Современные темпы развития ИИ и нейросетей позволяют прогнозировать достижение AGI (Artificial General Intelligence) к 2030 году. Экспоненциальный рост вычислительных мощностей, развитие алгоритмов глубокого обучения и появление новых архитектур нейронных сетей создают все предпосылки для этого прорыва.",
+    tldr: "AGI будет достигнут к 2030 благодаря экспоненциальному росту вычислительных мощностей и алгоритмическим прорывам.",
+    status: "ACTIVE" as const,
+    realm: "Технологии",
+    topic: "Искусственный интеллект",
+    tags: ["AI", "AGI", "Futurism", "Technology", "Machine Learning"],
+    createdAt: new Date("2024-01-15"),
+    authorName: "Иван Петров",
+    evidenceCount: 12,
+    forPercent: 65,
   };
 
+  const evidenceCards = [
+    {
+      id: "evidence-1",
+      content: "Закон Мура продолжает действовать для специализированных AI-чипов. Вычислительная мощность удваивается каждые 2 года, что подтверждается последними исследованиями NVIDIA и Google.",
+      source: "https://example.com/source1",
+      sourceTitle: "IEEE Spectrum: AI Hardware Report 2024",
+      stance: "FOR" as const,
+      voteCount: 42,
+      averageStrength: 8.2,
+      authorName: "Алексей Смирнов",
+    },
+    {
+      id: "evidence-2",
+      content: "Текущие модели LLM демонстрируют emergent abilities, которые не были запрограммированы. Это указывает на зарождение качественно новых когнитивных способностей.",
+      source: "https://example.com/source2",
+      sourceTitle: "Nature: Emergent Abilities in Large Language Models",
+      stance: "FOR" as const,
+      voteCount: 31,
+      averageStrength: 7.8,
+      authorName: "Мария Ковалёва",
+    },
+    {
+      id: "evidence-3",
+      content: "AGI требует понимания причинно-следственных связей, чего современные нейросети не демонстрируют. Они лишь коррелируют паттерны в данных без реального понимания.",
+      source: "https://example.com/source3",
+      sourceTitle: "MIT Technology Review: The Limits of Current AI",
+      stance: "AGAINST" as const,
+      voteCount: 28,
+      averageStrength: 6.5,
+      authorName: "Дмитрий Волков",
+    },
+    {
+      id: "evidence-4",
+      content: "Инвестиции в AI исследования растут экспоненциально. В 2023 году венчурные инвестиции в AI стартапы превысили $50 млрд, что ускоряет прогресс.",
+      source: "https://example.com/source4",
+      sourceTitle: "Crunchbase: AI Funding Report 2023",
+      stance: "FOR" as const,
+      voteCount: 19,
+      averageStrength: 8.9,
+      authorName: "Сергей Иванов",
+    },
+  ];
+
+  const relatedTheories = [
+    {
+      id: "theory-456",
+      slug: "ai-safety-concerns",
+      title: "Проблема безопасности ИИ критически недооценена",
+      claim: "Риски, связанные с развитием сверхчеловеческого ИИ, требуют немедленного регулирования и исследований в области AI safety.",
+      tldr: "Без должного контроля AGI может представлять экзистенциальную угрозу.",
+      status: "ACTIVE" as const,
+      realm: "Технологии",
+      topic: "ИИ",
+      tags: ["AI Safety", "Alignment", "Этика"],
+      createdAt: new Date("2024-02-10"),
+      authorName: "Елена Соколова",
+      evidenceCount: 8,
+      forPercent: 72,
+    },
+    {
+      id: "theory-789",
+      slug: "conscious-ai-impossible",
+      title: "Создание сознательного ИИ принципиально невозможно",
+      claim: "Сознание является фундаментальным свойством биологических систем и не может быть воспроизведено в цифровых вычислительных системах.",
+      tldr: "ИИ может быть интеллектуальным, но никогда не будет сознательным.",
+      status: "ACTIVE" as const,
+      realm: "Философия",
+      topic: "Сознание",
+      tags: ["Философия", "Сознание", "Нейронауки"],
+      createdAt: new Date("2024-01-28"),
+      authorName: "Андрей Павлов",
+      evidenceCount: 14,
+      forPercent: 38,
+    },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
-      <TheoryHeader
-        title={theory.title}
-        realm={theory.realm}
-        topic={theory.topic}
-        tags={theory.tags}
-        status={theory.status}
-      />
-
-      <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />
-
-      <ConfidenceBar forScore={forScore} againstScore={againstScore} />
-
-      <Separator />
-
-      <div className="grid md:grid-cols-2 gap-8">
-        <TopEvidence title="Топ аргументы ЗА" stance="FOR" cards={topFor} />
-        <TopEvidence title="Топ аргументы ПРОТИВ" stance="AGAINST" cards={topAgainst} />
+    <div className="container mx-auto py-8 space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="text-xs">
+              {theory.realm}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {theory.topic}
+            </Badge>
+          </div>
+          <h1 className="text-3xl font-bold">{theory.title}</h1>
+          <p className="text-muted-foreground mt-2">
+            Теория создана {new Date(theory.createdAt).toLocaleDateString("ru-RU")} • Автор: {theory.authorName}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Добавить доказательство
+          </Button>
+          <ReportButton
+            targetId={theory.id}
+            targetType="THEORY"
+            variant="outline"
+            size="sm"
+            onReport={() => setIsTheoryReportModalOpen(true)}
+          >
+            Пожаловаться
+          </ReportButton>
+        </div>
       </div>
 
-      <Separator />
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Утверждение</h2>
+              <p className="text-muted-foreground">{theory.claim}</p>
+            </div>
+            
+            <div className="p-4 bg-muted rounded-lg">
+              <p>{theory.tldr}</p>
+            </div>
 
-      <AllEvidence
-        forCards={mockForCards}
-        againstCards={mockAgainstCards}
-        onAddCard={() => setIsAddCardOpen(true)}
-      />
+            <div className="flex flex-wrap gap-2">
+              {theory.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-      <EvidenceForm 
-        theoryId={theory.id}
-        open={isAddCardOpen}
-        onOpenChange={setIsAddCardOpen}
-        onSuccess={handleCardAdded}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Доказательства ({evidenceCards.length})</h2>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>За: {evidenceCards.filter(e => e.stance === "FOR").length}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                  <span>Против: {evidenceCards.filter(e => e.stance === "AGAINST").length}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              {evidenceCards.map((evidence) => (
+                <EvidenceCard key={evidence.id} {...evidence} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-bold text-lg mb-4">Статистика</h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Всего доказательств</p>
+                <p className="text-2xl font-bold">{theory.evidenceCount}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Поддержка теории</p>
+                <p className="text-2xl font-bold">{theory.forPercent}%</p>
+                <div className="h-2 bg-muted rounded-full overflow-hidden mt-1">
+                  <div 
+                    className="h-full bg-green-500 rounded-full"
+                    style={{ width: `${theory.forPercent}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Средняя сила аргументов</p>
+                <p className="text-2xl font-bold">7.8/10</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-bold text-lg">Похожие теории</h3>
+            <div className="space-y-4">
+              {relatedTheories.map((relatedTheory) => (
+                <div key={relatedTheory.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <h4 className="font-medium">{relatedTheory.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{relatedTheory.tldr}</p>
+                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                    <span>{relatedTheory.evidenceCount} док.</span>
+                    <span>{relatedTheory.forPercent}% за</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ReportModal
+        open={isTheoryReportModalOpen}
+        onOpenChange={setIsTheoryReportModalOpen}
+        targetId={theory.id}
+        targetType="THEORY"
+        targetContent={theory.title}
+        onReportSubmit={() => {
+          console.log("Theory report submitted from page");
+          setIsTheoryReportModalOpen(false);
+        }}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-// app/theory/[slug]/page.tsx
 import { TheoryPage } from "@/components/theory/TheoryPage";
 
 interface TheoryPageProps {
