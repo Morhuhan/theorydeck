@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/auth-helpers";
-import { TheoryStatus } from "@prisma/client";
+import { TheoryStatus, CardStatus } from "@prisma/client";
 
 function generateSlug(title: string): string {
   return title
@@ -77,6 +77,14 @@ export async function GET(request: Request) {
               evidenceCards: true,
             },
           },
+          evidenceCards: {
+            where: {
+              status: CardStatus.ACTIVE,
+            },
+            include: {
+              votes: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -90,8 +98,46 @@ export async function GET(request: Request) {
     const hasMore = theories.length > limit;
     const theoriesToReturn = hasMore ? theories.slice(0, limit) : theories;
 
+    // Подсчитываем статистику голосов для каждой теории
+    const theoriesWithStats = theoriesToReturn.map((theory) => {
+      let totalVotes = 0;
+      let totalStrength = 0;
+
+      theory.evidenceCards.forEach((card) => {
+        card.votes.forEach((vote) => {
+          totalVotes++;
+          totalStrength += vote.strength;
+        });
+      });
+
+      const averageStrength = totalVotes > 0 ? totalStrength / totalVotes : 0;
+      // Конвертируем среднюю силу голоса (-10 до +10) в процент (0% до 100%)
+      // -10 = 0%, 0 = 50%, +10 = 100%
+      const forPercent = ((averageStrength + 10) / 20) * 100;
+
+      return {
+        id: theory.id,
+        slug: theory.slug,
+        title: theory.title,
+        claim: theory.claim,
+        tldr: theory.tldr,
+        realm: theory.realm,
+        topic: theory.topic,
+        tags: theory.tags,
+        status: theory.status,
+        createdAt: theory.createdAt,
+        author: theory.author,
+        _count: {
+          evidenceCards: theory._count.evidenceCards,
+        },
+        voteStats: {
+          forPercent: totalVotes > 0 ? forPercent : null,
+        },
+      };
+    });
+
     return NextResponse.json({
-      theories: theoriesToReturn,
+      theories: theoriesWithStats,
       hasMore,
       totalCount,
       page,

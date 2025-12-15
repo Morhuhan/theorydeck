@@ -38,7 +38,7 @@ export function TheoryCard({
   createdAt,
   authorName,
   evidenceCount = 0,
-  forPercent = 0,
+  forPercent = undefined,
 }: TheoryCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -56,10 +56,10 @@ export function TheoryCard({
             <div className="flex items-start justify-between gap-2">
               <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-start gap-2">
-                  <h3 className="font-semibold text-lg break-all overflow-wrap-anywhere">{title}</h3>
+                  <h3 className="font-semibold text-lg break-words overflow-hidden">{title}</h3>
                 </div>
                 {realm && topic && (
-                  <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
+                  <p className="text-sm text-muted-foreground break-words overflow-hidden">
                     {realm} • {topic}
                   </p>
                 )}
@@ -77,17 +77,17 @@ export function TheoryCard({
           <CardContent className="space-y-4 flex-1">
             <div>
               <h4 className="text-sm font-medium mb-1">Утверждение:</h4>
-              <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere line-clamp-3">{claim}</p>
+              <p className="text-sm text-muted-foreground break-words overflow-hidden line-clamp-3">{claim}</p>
             </div>
             
             <div className="p-3 bg-muted rounded-md">
-              <p className="text-sm break-all overflow-wrap-anywhere line-clamp-3">{tldr}</p>
+              <p className="text-sm break-words overflow-hidden line-clamp-3">{tldr}</p>
             </div>
             
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs break-all overflow-wrap-anywhere max-w-full">
+                  <Badge key={tag} variant="outline" className="text-xs break-words overflow-hidden max-w-full">
                     {tag}
                   </Badge>
                 ))}
@@ -109,10 +109,12 @@ export function TheoryCard({
                 <MessageSquare className="h-3 w-3 flex-shrink-0" />
                 <span>{evidenceCount}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <BarChart className="h-3 w-3 flex-shrink-0" />
-                <span className="whitespace-nowrap">{forPercent}% за</span>
-              </div>
+              {forPercent !== undefined && (
+                <div className="flex items-center gap-1">
+                  <BarChart className="h-3 w-3 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{Math.round(forPercent)}% за</span>
+                </div>
+              )}
             </div>
           </CardFooter>
         </Card>
