@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma migrate deploy && next build",
+    "build": "npx prisma migrate deploy && prisma generate && next build ",
     "start": "next start",
     "seed": "tsx prisma/seed.ts",
     "seed:admin": "tsx prisma/seed-admin.ts",
