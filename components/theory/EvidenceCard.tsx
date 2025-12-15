@@ -17,8 +17,8 @@ interface EvidenceCardProps {
   sourceTitle?: string;
   context?: string;
   stance: Stance;
-  voteCount: number;
-  averageStrength: number;
+  voteCount?: number;
+  averageStrength?: number;
   authorName?: string;
 }
 
@@ -29,8 +29,8 @@ export function EvidenceCard({
   sourceTitle,
   context,
   stance,
-  voteCount,
-  averageStrength,
+  voteCount = 0,
+  averageStrength = 0,
   authorName,
 }: EvidenceCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -52,6 +52,11 @@ export function EvidenceCard({
     setIsReportModalOpen(false);
   };
 
+  // Безопасное преобразование averageStrength
+  const safeAverageStrength = typeof averageStrength === 'number' && !isNaN(averageStrength) 
+    ? averageStrength 
+    : 0;
+
   return (
     <>
       <Card className={`border-l-4 ${stanceColor} ${stanceBg} relative overflow-hidden`}>
@@ -63,7 +68,7 @@ export function EvidenceCard({
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <ThumbsUp className="h-4 w-4" />
-                <span className="font-semibold">{averageStrength.toFixed(1)}</span>
+                <span className="font-semibold">{safeAverageStrength.toFixed(1)}</span>
                 <span className="text-xs">/ 10</span>
               </div>
               <ReportButton 
