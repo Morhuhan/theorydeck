@@ -123,6 +123,17 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   const againstCards = mapEvidenceCards(filterCardsByStance(theory.evidenceCards, "AGAINST"));
   const voteStats = calculateVoteStats(theory.evidenceCards);
 
+  const topForCards = forCards.slice(0, 3);
+  const topAgainstCards = againstCards.slice(0, 3);
+
+  const topCardIds = new Set([
+    ...topForCards.map(card => card.id),
+    ...topAgainstCards.map(card => card.id)
+  ]);
+
+  const remainingForCards = forCards.filter(card => !topCardIds.has(card.id));
+  const remainingAgainstCards = againstCards.filter(card => !topCardIds.has(card.id));
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
       <TheoryHeader
@@ -142,13 +153,23 @@ export function TheoryPage({ slug }: TheoryPageProps) {
       />
 
       <div className="grid md:grid-cols-2 gap-8">
-        <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
-        <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
+        <TopEvidence 
+          title="Топ доказательств ЗА" 
+          stance="FOR" 
+          cards={topForCards} 
+          onVoteUpdate={handleVoteUpdate} 
+        />
+        <TopEvidence 
+          title="Топ доказательств ПРОТИВ" 
+          stance="AGAINST" 
+          cards={topAgainstCards} 
+          onVoteUpdate={handleVoteUpdate} 
+        />
       </div>
 
       <AllEvidence 
-        forCards={forCards} 
-        againstCards={againstCards} 
+        forCards={remainingForCards} 
+        againstCards={remainingAgainstCards} 
         onAddCard={handleAddEvidence}
         onVoteUpdate={handleVoteUpdate}
       />
