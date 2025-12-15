@@ -53,7 +53,7 @@ export function TheoryPage({ slug }: TheoryPageProps) {
 
   const handleAddEvidence = () => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin");
+      router.push("/login");
       return;
     }
     setIsEvidenceFormOpen(true);
@@ -95,12 +95,14 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         againstScore={againstCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
       />
 
-      <div className="flex justify-center">
-        <Button onClick={handleAddEvidence} size="lg">
-          <Plus className="h-4 w-4 mr-2" />
-          {status === "unauthenticated" ? "Войти для добавления доказательства" : "Добавить доказательство"}
-        </Button>
-      </div>
+      {status === "authenticated" && (
+        <div className="flex justify-center">
+          <Button onClick={handleAddEvidence} size="lg">
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить доказательство
+          </Button>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-8">
         <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} />

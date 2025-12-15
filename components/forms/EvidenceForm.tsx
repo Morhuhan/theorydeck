@@ -144,7 +144,7 @@ export function EvidenceForm({ theoryId, open, onOpenChange, onSuccess }: Eviden
               Отмена
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Добавление..." : "Добавить карточку"}
+              {isLoading ? "Добавление..." : "Добавить доказательство"}
             </Button>
           </DialogFooter>
         </form>
