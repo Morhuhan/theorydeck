@@ -23,7 +23,7 @@ interface EvidenceCardProps {
   authorName?: string;
   authorId?: string;
   userVote?: number | null;
-  onVoteSuccess?: () => void;
+  onVoteUpdate?: (cardId: string, newStrength: number) => void;
 }
 
 export function EvidenceCard({
@@ -38,7 +38,7 @@ export function EvidenceCard({
   authorName,
   authorId,
   userVote,
-  onVoteSuccess,
+  onVoteUpdate,
 }: EvidenceCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -111,7 +111,7 @@ export function EvidenceCard({
               cardId={id}
               cardAuthorId={authorId}
               currentVote={userVote}
-              onVoteSuccess={onVoteSuccess}
+              onVoteUpdate={onVoteUpdate}
               className="pt-2 border-t" 
             />
           )}

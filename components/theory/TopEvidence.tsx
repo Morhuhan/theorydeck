@@ -13,32 +13,29 @@ interface Evidence {
   voteCount: number;
   averageStrength: number;
   authorName?: string;
+  authorId?: string;
+  userVote?: number | null;
 }
 
 interface TopEvidenceProps {
   title: string;
   stance: Stance;
   cards: Evidence[];
+  onVoteUpdate?: (cardId: string, newStrength: number) => void;
 }
 
-export function TopEvidence({ title, stance, cards }: TopEvidenceProps) {
-  const borderColor = stance === "FOR" ? "border-green-500" : "border-red-500";
-  const textColor = stance === "FOR" ? "text-green-500" : "text-red-500";
-
+export function TopEvidence({ title, stance, cards, onVoteUpdate }: TopEvidenceProps) {
   return (
     <div className="space-y-4">
-      <h3 className={`text-lg font-semibold ${textColor} border-b-2 ${borderColor} pb-2`}>
-        {title}
-      </h3>
-      
+      <h2 className="text-xl font-semibold">{title}</h2>
       {cards.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">
-          Пока нет карточек. Будьте первым!
+          Нет карточек
         </p>
       ) : (
         <div className="space-y-4">
           {cards.map((card) => (
-            <EvidenceCard key={card.id} {...card} />
+            <EvidenceCard key={card.id} {...card} onVoteUpdate={onVoteUpdate} />
           ))}
         </div>
       )}

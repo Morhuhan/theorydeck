@@ -24,10 +24,10 @@ interface AllEvidenceProps {
   forCards: Evidence[];
   againstCards: Evidence[];
   onAddCard?: () => void;
-  onVoteSuccess?: () => void;
+  onVoteUpdate?: (cardId: string, newStrength: number) => void;
 }
 
-export function AllEvidence({ forCards, againstCards, onAddCard, onVoteSuccess }: AllEvidenceProps) {
+export function AllEvidence({ forCards, againstCards, onAddCard, onVoteUpdate }: AllEvidenceProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -60,7 +60,7 @@ export function AllEvidence({ forCards, againstCards, onAddCard, onVoteSuccess }
               <EvidenceCard 
                 key={card.id} 
                 {...card} 
-                onVoteSuccess={onVoteSuccess} 
+                onVoteUpdate={onVoteUpdate}
               />
             ))
           )}
@@ -76,7 +76,7 @@ export function AllEvidence({ forCards, againstCards, onAddCard, onVoteSuccess }
               <EvidenceCard 
                 key={card.id} 
                 {...card} 
-                onVoteSuccess={onVoteSuccess} 
+                onVoteUpdate={onVoteUpdate}
               />
             ))
           )}

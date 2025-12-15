@@ -21,7 +21,7 @@ interface VoteStrengthProps {
   cardId: string;
   cardAuthorId: string;
   currentVote?: number | null;
-  onVoteSuccess?: () => void;
+  onVoteUpdate?: (cardId: string, newStrength: number) => void;
   className?: string;
 }
 
@@ -29,17 +29,14 @@ export function VoteStrength({
   cardId, 
   cardAuthorId, 
   currentVote, 
-  onVoteSuccess,
+  onVoteUpdate,
   className 
 }: VoteStrengthProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedStrength, setSelectedStrength] = useState<number | null>(currentVote ?? null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Проверяем, является ли текущий пользователь автором карточки
   const isOwnCard = session?.user?.id === cardAuthorId;
-
   const handleVote = async (strength: number) => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -72,7 +69,7 @@ export function VoteStrength({
       }
 
       setSelectedStrength(strength);
-      onVoteSuccess?.();
+      onVoteUpdate?.(cardId, strength);
     } catch (error) {
       alert(error instanceof Error ? error.message : "Произошла ошибка");
     } finally {

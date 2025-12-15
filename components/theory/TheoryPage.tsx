@@ -59,6 +59,50 @@ export function TheoryPage({ slug }: TheoryPageProps) {
     setIsEvidenceFormOpen(true);
   };
 
+  const handleVoteUpdate = (cardId: string, newStrength: number) => {
+    setTheory((prevTheory: any) => {
+      if (!prevTheory) return prevTheory;
+
+      const updatedCards = prevTheory.evidenceCards.map((card: any) => {
+        if (card.id === cardId) {
+          const currentVotes = card.voteStats?.count || 0;
+          const currentAvg = card.voteStats?.averageStrength || 0;
+          const userHadVote = card.userVote !== null && card.userVote !== undefined;
+
+          let newVoteCount: number;
+          let newAvgStrength: number;
+
+          if (userHadVote) {
+            const totalStrength = currentAvg * currentVotes;
+            const newTotalStrength = totalStrength - (card.userVote || 0) + newStrength;
+            newVoteCount = currentVotes;
+            newAvgStrength = newTotalStrength / newVoteCount;
+          } else {
+            const totalStrength = currentAvg * currentVotes;
+            const newTotalStrength = totalStrength + newStrength;
+            newVoteCount = currentVotes + 1;
+            newAvgStrength = newTotalStrength / newVoteCount;
+          }
+
+          return {
+            ...card,
+            voteStats: {
+              count: newVoteCount,
+              averageStrength: newAvgStrength,
+            },
+            userVote: newStrength,
+          };
+        }
+        return card;
+      });
+
+      return {
+        ...prevTheory,
+        evidenceCards: updatedCards,
+      };
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -98,14 +142,15 @@ export function TheoryPage({ slug }: TheoryPageProps) {
       />
 
       <div className="grid md:grid-cols-2 gap-8">
-        <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} />
-        <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} />
+        <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
+        <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
       </div>
 
       <AllEvidence 
         forCards={forCards} 
         againstCards={againstCards} 
         onAddCard={handleAddEvidence}
+        onVoteUpdate={handleVoteUpdate}
       />
 
       {status === "authenticated" && (
