@@ -26,6 +26,10 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   const [isEvidenceFormOpen, setIsEvidenceFormOpen] = useState(false);
   const [isTheoryReportModalOpen, setIsTheoryReportModalOpen] = useState(false);
 
+  const handleTheoryReportClick = () => {
+    setIsTheoryReportModalOpen(true);
+  };
+
   const loadTheory = async () => {
     try {
       setIsLoading(true);
@@ -142,6 +146,8 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         topic={theory.topic}
         tags={theory.tags}
         status={theory.status}
+        theoryId={theory.id}
+        onReportClick={handleTheoryReportClick}
       />
 
       <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />

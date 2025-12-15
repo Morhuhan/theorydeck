@@ -2,44 +2,62 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { ReportButton } from "./ReportButton";
 
 interface TheoryHeaderProps {
   title: string;
-  realm?: string;
-  topic?: string;
-  tags?: string[];
+  realm?: string | null;
+  topic?: string | null;
+  tags: string[];
   status: string;
+  theoryId: string;
+  onReportClick: () => void;
 }
 
-export function TheoryHeader({ title, realm, topic, tags = [], status }: TheoryHeaderProps) {
-  const statusColors: Record<string, string> = {
-    ACTIVE: "bg-green-500/10 text-green-500 border-green-500/20",
-    DRAFT: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-    ARCHIVED: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-    RESOLVED: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    MODERATED: "bg-red-500/10 text-red-500 border-red-500/20",
+export function TheoryHeader({
+  title,
+  realm,
+  topic,
+  tags,
+  status,
+  theoryId,
+  onReportClick,
+}: TheoryHeaderProps) {
+  const handleReportClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onReportClick();
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-        {realm && <span className="break-all overflow-wrap-anywhere">{realm}</span>}
-        {realm && topic && <span className="flex-shrink-0">/</span>}
-        {topic && <span className="break-all overflow-wrap-anywhere">{topic}</span>}
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2 flex-1 min-w-0">
+          <h1 className="text-3xl md:text-4xl font-bold break-words">{title}</h1>
+          {realm && topic && (
+            <p className="text-lg text-muted-foreground">
+              {realm} • {topic}
+            </p>
+          )}
+        </div>
+        <div onClick={handleReportClick}>
+          <ReportButton
+            targetId={theoryId}
+            targetType="THEORY"
+            onReport={handleReportClick}
+          />
+        </div>
       </div>
-      
-      <h1 className="text-3xl font-bold tracking-tight break-all overflow-wrap-anywhere">{title}</h1>
-      
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className={`${statusColors[status] || statusColors.ACTIVE} break-all overflow-wrap-anywhere max-w-full`}>
-          {status}
-        </Badge>
-        {tags.map((tag) => (
-          <Badge key={tag} variant="secondary" className="break-all overflow-wrap-anywhere max-w-full">
-            {tag}
-          </Badge>
-        ))}
-      </div>
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="outline">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
