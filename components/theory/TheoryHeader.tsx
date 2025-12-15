@@ -22,20 +22,20 @@ export function TheoryHeader({ title, realm, topic, tags = [], status }: TheoryH
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {realm && <span>{realm}</span>}
-        {realm && topic && <span>/</span>}
-        {topic && <span>{topic}</span>}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+        {realm && <span className="break-all overflow-wrap-anywhere">{realm}</span>}
+        {realm && topic && <span className="flex-shrink-0">/</span>}
+        {topic && <span className="break-all overflow-wrap-anywhere">{topic}</span>}
       </div>
       
-      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      <h1 className="text-3xl font-bold tracking-tight break-all overflow-wrap-anywhere">{title}</h1>
       
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className={statusColors[status] || statusColors.ACTIVE}>
+        <Badge variant="outline" className={`${statusColors[status] || statusColors.ACTIVE} break-all overflow-wrap-anywhere max-w-full`}>
           {status}
         </Badge>
         {tags.map((tag) => (
-          <Badge key={tag} variant="secondary">
+          <Badge key={tag} variant="secondary" className="break-all overflow-wrap-anywhere max-w-full">
             {tag}
           </Badge>
         ))}

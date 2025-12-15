@@ -11,13 +11,15 @@ import { ReportModal } from "@/components/reports/ReportModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface TheoryPageProps {
   slug: string;
 }
 
 export function TheoryPage({ slug }: TheoryPageProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [theory, setTheory] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,6 +50,14 @@ export function TheoryPage({ slug }: TheoryPageProps) {
   useEffect(() => {
     loadTheory();
   }, [slug]);
+
+  const handleAddEvidence = () => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
+    }
+    setIsEvidenceFormOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -85,14 +95,12 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         againstScore={againstCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
       />
 
-      {session && (
-        <div className="flex justify-center">
-          <Button onClick={() => setIsEvidenceFormOpen(true)} size="lg">
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить доказательство
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-center">
+        <Button onClick={handleAddEvidence} size="lg">
+          <Plus className="h-4 w-4 mr-2" />
+          {status === "unauthenticated" ? "Войти для добавления доказательства" : "Добавить доказательство"}
+        </Button>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} />
@@ -101,7 +109,7 @@ export function TheoryPage({ slug }: TheoryPageProps) {
 
       <AllEvidence forCards={forCards} againstCards={againstCards} />
 
-      {session && (
+      {status === "authenticated" && (
         <EvidenceForm
           theoryId={theory.id}
           open={isEvidenceFormOpen}
