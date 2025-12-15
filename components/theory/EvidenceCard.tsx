@@ -1,3 +1,4 @@
+// components/theory/EvidenceCard.tsx
 "use client";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -20,6 +21,9 @@ interface EvidenceCardProps {
   voteCount?: number;
   averageStrength?: number;
   authorName?: string;
+  authorId?: string;
+  userVote?: number | null;
+  onVoteSuccess?: () => void;
 }
 
 export function EvidenceCard({
@@ -32,6 +36,9 @@ export function EvidenceCard({
   voteCount = 0,
   averageStrength = 0,
   authorName,
+  authorId,
+  userVote,
+  onVoteSuccess,
 }: EvidenceCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -99,7 +106,15 @@ export function EvidenceCard({
             </a>
           )}
 
-          <VoteStrength className="pt-2 border-t" />
+          {authorId && (
+            <VoteStrength 
+              cardId={id}
+              cardAuthorId={authorId}
+              currentVote={userVote}
+              onVoteSuccess={onVoteSuccess}
+              className="pt-2 border-t" 
+            />
+          )}
         </CardContent>
         
         <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground">

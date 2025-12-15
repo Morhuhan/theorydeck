@@ -16,15 +16,18 @@ interface Evidence {
   voteCount: number;
   averageStrength: number;
   authorName?: string;
+  authorId?: string;
+  userVote?: number | null;
 }
 
 interface AllEvidenceProps {
   forCards: Evidence[];
   againstCards: Evidence[];
   onAddCard?: () => void;
+  onVoteSuccess?: () => void;
 }
 
-export function AllEvidence({ forCards, againstCards, onAddCard }: AllEvidenceProps) {
+export function AllEvidence({ forCards, againstCards, onAddCard, onVoteSuccess }: AllEvidenceProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -54,7 +57,11 @@ export function AllEvidence({ forCards, againstCards, onAddCard }: AllEvidencePr
             </p>
           ) : (
             forCards.map((card) => (
-              <EvidenceCard key={card.id} {...card} />
+              <EvidenceCard 
+                key={card.id} 
+                {...card} 
+                onVoteSuccess={onVoteSuccess} 
+              />
             ))
           )}
         </TabsContent>
@@ -66,7 +73,11 @@ export function AllEvidence({ forCards, againstCards, onAddCard }: AllEvidencePr
             </p>
           ) : (
             againstCards.map((card) => (
-              <EvidenceCard key={card.id} {...card} />
+              <EvidenceCard 
+                key={card.id} 
+                {...card} 
+                onVoteSuccess={onVoteSuccess} 
+              />
             ))
           )}
         </TabsContent>

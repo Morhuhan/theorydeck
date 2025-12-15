@@ -12,6 +12,8 @@ export interface EvidenceCard {
     averageStrength: number;
   };
   authorName?: string;
+  authorId?: string;
+  userVote?: number | null;
   author?: {
     id: string;
     name?: string;
@@ -26,10 +28,16 @@ export interface VoteCalculationResult {
   againstPercent: number;
 }
 
+/**
+ * Рассчитывает статистику голосов для теории на основе карточек доказательств
+ * @param evidenceCards - массив карточек доказательств
+ * @returns объект со статистикой голосов
+ */
 export function calculateVoteStats(evidenceCards: EvidenceCard[]): VoteCalculationResult {
   const forCards = evidenceCards.filter((c) => c.stance === "FOR");
   const againstCards = evidenceCards.filter((c) => c.stance === "AGAINST");
 
+  // Считаем только карточки с реальными голосами
   const forScore = forCards.reduce((sum, card) => {
     if (card.voteStats?.count && card.voteStats.count > 0) {
       return sum + (card.voteStats.averageStrength * card.voteStats.count);
@@ -44,11 +52,13 @@ export function calculateVoteStats(evidenceCards: EvidenceCard[]): VoteCalculati
     return sum;
   }, 0);
 
+  // Общее количество голосов
   const totalVotes = [...forCards, ...againstCards].reduce(
     (sum, card) => sum + (card.voteStats?.count || 0),
     0
   );
 
+  // Рассчитываем проценты
   const total = forScore + againstScore;
   const forPercent = total > 0 ? Math.round((forScore / total) * 100) : 50;
   const againstPercent = total > 0 ? 100 - forPercent : 50;
@@ -62,7 +72,12 @@ export function calculateVoteStats(evidenceCards: EvidenceCard[]): VoteCalculati
   };
 }
 
-
+/**
+ * Фильтрует карточки по позиции
+ * @param evidenceCards - массив карточек доказательств
+ * @param stance - позиция ("FOR" или "AGAINST")
+ * @returns отфильтрованный массив карточек
+ */
 export function filterCardsByStance(
   evidenceCards: EvidenceCard[],
   stance: "FOR" | "AGAINST"
@@ -70,7 +85,11 @@ export function filterCardsByStance(
   return evidenceCards.filter((c) => c.stance === stance);
 }
 
-
+/**
+ * Преобразует карточки доказательств в формат для отображения
+ * @param cards - массив карточек доказательств
+ * @returns массив карточек с правильной структурой для компонентов
+ */
 export function mapEvidenceCards(cards: EvidenceCard[]) {
   return cards.map((card) => ({
     id: card.id,
@@ -82,5 +101,7 @@ export function mapEvidenceCards(cards: EvidenceCard[]) {
     voteCount: card.voteStats?.count || 0,
     averageStrength: card.voteStats?.averageStrength || 0,
     authorName: card.author?.name || card.authorName || "Аноним",
+    authorId: card.author?.id || card.authorId,
+    userVote: card.userVote,
   }));
 }
