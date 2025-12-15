@@ -1,35 +1,10 @@
 import 'dotenv/config';
-import { PrismaClient } from "@prisma/client";
-import { UserRole } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-if (!process.env.DIRECT_URL) {
-  throw new Error('DIRECT_URL environment variable is not set. Please check your .env file.');
-}
-
-const dbUrl = process.env.DIRECT_URL;
-
-const match = dbUrl.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+?)(\?|$)/);
-
-if (!match) {
-  throw new Error('Invalid DIRECT_URL format');
-}
-
-const [, user, password, host, port, database] = match;
-
-const pool = new Pool({
-  host,
-  port: parseInt(port),
-  database: database.split('?')[0],
-  user,
-  password,
-  ssl: { rejectUnauthorized: false },
+const prisma = new PrismaClient({
+  accelerateUrl: process.env.DATABASE_URL,
 });
-
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Starting admin seed...');
@@ -73,6 +48,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await pool.end();
     await prisma.$disconnect();
   });
