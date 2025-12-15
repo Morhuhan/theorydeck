@@ -24,6 +24,7 @@ interface EvidenceCardProps {
   authorId?: string;
   userVote?: number | null;
   onVoteUpdate?: (cardId: string, newStrength: number) => void;
+  isAuthenticated?: boolean;
 }
 
 export function EvidenceCard({
@@ -39,6 +40,7 @@ export function EvidenceCard({
   authorId,
   userVote,
   onVoteUpdate,
+  isAuthenticated = false,
 }: EvidenceCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -86,6 +88,7 @@ export function EvidenceCard({
                   targetId={id}
                   targetType="EVIDENCE"
                   onReport={handleReportClick}
+                  isAuthenticated={isAuthenticated}
                 />
               </div>
             </div>
@@ -128,12 +131,14 @@ export function EvidenceCard({
         </CardFooter>
       </Card>
 
-      <ReportForm
-        open={isReportModalOpen}
-        onOpenChange={setIsReportModalOpen}
-        targetId={id}
-        targetType="card"
-      />
+      {isAuthenticated && (
+        <ReportForm
+          open={isReportModalOpen}
+          onOpenChange={setIsReportModalOpen}
+          targetId={id}
+          targetType="card"
+        />
+      )}
     </>
   );
 }

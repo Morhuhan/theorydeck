@@ -23,6 +23,7 @@ interface TheoryCardProps {
   authorName?: string;
   evidenceCount?: number;
   forPercent?: number;
+  isAuthenticated?: boolean;
 }
 
 export function TheoryCard({
@@ -39,6 +40,7 @@ export function TheoryCard({
   authorName,
   evidenceCount = 0,
   forPercent = 0,
+  isAuthenticated = false,
 }: TheoryCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -69,6 +71,7 @@ export function TheoryCard({
                   targetId={id}
                   targetType="THEORY"
                   onReport={handleReportClick}
+                  isAuthenticated={isAuthenticated}
                 />
               </div>
             </div>
@@ -118,12 +121,14 @@ export function TheoryCard({
         </Card>
       </Link>
 
-      <ReportForm
-        open={isReportModalOpen}
-        onOpenChange={setIsReportModalOpen}
-        targetId={id}
-        targetType="theory"
-      />
+      {isAuthenticated && (
+        <ReportForm
+          open={isReportModalOpen}
+          onOpenChange={setIsReportModalOpen}
+          targetId={id}
+          targetType="theory"
+        />
+      )}
     </>
   );
 }

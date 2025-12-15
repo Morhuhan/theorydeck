@@ -4,6 +4,7 @@
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 interface ReportButtonProps {
   targetId: string;
@@ -13,6 +14,7 @@ interface ReportButtonProps {
   size?: "sm" | "default" | "lg" | "icon" | "icon-sm" | "icon-lg";
   className?: string;
   children?: ReactNode;
+  isAuthenticated?: boolean;
 }
 
 export function ReportButton({ 
@@ -22,11 +24,20 @@ export function ReportButton({
   variant = "ghost",
   size = "icon",
   className = "",
-  children
+  children,
+  isAuthenticated = false
 }: ReportButtonProps) {
+  const router = useRouter();
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+    
     console.log(`Report ${targetType} ${targetId}`);
     if (onReport) {
       onReport(e);
