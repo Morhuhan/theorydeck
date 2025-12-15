@@ -93,7 +93,7 @@ export function EvidenceCard({
         </CardHeader>
         
         <CardContent className="space-y-3">
-          <p className="text-sm break-all overflow-wrap-anywhere">{content}</p>
+          <p className="text-sm break-all">{content}</p>
           
           {context && (
             <p className="text-xs text-muted-foreground italic break-all overflow-wrap-anywhere">{context}</p>
