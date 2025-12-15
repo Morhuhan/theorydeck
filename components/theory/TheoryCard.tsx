@@ -1,3 +1,4 @@
+// components/theory/TheoryCard.tsx
 "use client";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Calendar, MessageSquare, User, BarChart } from "lucide-react";
 import { ReportButton } from "./ReportButton";
 import { ReportModal } from "@/components/reports/ReportModal";
 import { useState } from "react";
+import Link from "next/link";
 
 interface TheoryCardProps {
   id: string;
@@ -47,69 +49,71 @@ export function TheoryCard({
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow h-full flex flex-col">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg">{title}</h3>
+      <Link href={`/theories/${slug}`} className="block h-full">
+        <Card className="hover:shadow-md transition-all h-full flex flex-col cursor-pointer hover:border-primary/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="flex items-start gap-2">
+                  <h3 className="font-semibold text-lg break-words">{title}</h3>
+                </div>
+                {realm && topic && (
+                  <p className="text-sm text-muted-foreground break-words">
+                    {realm} • {topic}
+                  </p>
+                )}
               </div>
-              {realm && topic && (
-                <p className="text-sm text-muted-foreground">
-                  {realm} • {topic}
-                </p>
-              )}
+              <ReportButton 
+                targetId={id}
+                targetType="THEORY"
+                onReport={() => setIsReportModalOpen(true)}
+              />
             </div>
-            <ReportButton 
-              targetId={id}
-              targetType="THEORY"
-              onReport={() => setIsReportModalOpen(true)}
-            />
-          </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4 flex-1">
-          <div>
-            <h4 className="text-sm font-medium mb-1">Утверждение:</h4>
-            <p className="text-sm text-muted-foreground line-clamp-2">{claim}</p>
-          </div>
+          </CardHeader>
           
-          <div className="p-3 bg-muted rounded-md">
-            <p className="text-sm line-clamp-2">{tldr}</p>
-          </div>
+          <CardContent className="space-y-4 flex-1">
+            <div>
+              <h4 className="text-sm font-medium mb-1">Утверждение:</h4>
+              <p className="text-sm text-muted-foreground break-words line-clamp-3">{claim}</p>
+            </div>
+            
+            <div className="p-3 bg-muted rounded-md">
+              <p className="text-sm break-words line-clamp-3">{tldr}</p>
+            </div>
+            
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs break-words">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </CardContent>
           
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+          <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{authorName || "Аноним"}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 flex-shrink-0" />
+                <span className="whitespace-nowrap">{new Date(createdAt).toLocaleDateString("ru-RU")}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3 flex-shrink-0" />
+                <span>{evidenceCount}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <BarChart className="h-3 w-3 flex-shrink-0" />
+                <span className="whitespace-nowrap">{forPercent}% за</span>
+              </div>
             </div>
-          )}
-        </CardContent>
-        
-        <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              <span>{authorName || "Аноним"}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <span>{new Date(createdAt).toLocaleDateString("ru-RU")}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              <span>{evidenceCount}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <BarChart className="h-3 w-3" />
-              <span>{forPercent}% за</span>
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </Link>
 
       <ReportModal
         open={isReportModalOpen}

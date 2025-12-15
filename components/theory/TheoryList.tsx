@@ -1,3 +1,4 @@
+// components/theory/TheoryList.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -75,7 +76,7 @@ export function TheoryList() {
   }
 
   return (
-    <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-8xl mx-auto">
+    <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr max-w-8xl mx-auto">
       {theories.map((theory) => (
         <TheoryCard
           key={theory.id}
