@@ -1,173 +1,230 @@
-// components/theory/TheoryPage.tsx
+// components/forms/ReportForm.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { TheoryHeader } from "./TheoryHeader";
-import { TheoryTLDR } from "./TheoryTLDR";
-import { ConfidenceBar } from "./ConfidenceBar";
-import { TopEvidence } from "./TopEvidence";
-import { AllEvidence } from "./AllEvidence";
-import { EvidenceForm } from "@/components/forms/EvidenceForm";
-import { ReportForm } from "@/components/forms/ReportForm";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { calculateVoteStats, filterCardsByStance, mapEvidenceCards } from "@/lib/utils/vote-stats";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface TheoryPageProps {
-  slug: string;
+interface ReportFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  targetType: "theory" | "card";
+  targetId: string;
 }
 
-export function TheoryPage({ slug }: TheoryPageProps) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [theory, setTheory] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isEvidenceFormOpen, setIsEvidenceFormOpen] = useState(false);
-  const [isTheoryReportModalOpen, setIsTheoryReportModalOpen] = useState(false);
+const REPORT_REASONS = [
+  { 
+    value: "SPAM", 
+    label: "Спам",
+    description: "Нежелательный или рекламный контент"
+  },
+  { 
+    value: "MISINFORMATION", 
+    label: "Дезинформация",
+    description: "Ложная или вводящая в заблуждение информация"
+  },
+  { 
+    value: "INAPPROPRIATE", 
+    label: "Неприемлемый контент",
+    description: "Оскорбительный или неуместный материал"
+  },
+  { 
+    value: "SPOILER", 
+    label: "Спойлер",
+    description: "Раскрытие важных сюжетных деталей"
+  },
+  { 
+    value: "LEAK", 
+    label: "Утечка информации",
+    description: "Неавторизованное раскрытие конфиденциальной информации"
+  },
+  { 
+    value: "DUPLICATE", 
+    label: "Дубликат",
+    description: "Повторяющийся контент"
+  },
+  { 
+    value: "OTHER", 
+    label: "Другое",
+    description: "Иная причина"
+  },
+];
 
-  const loadTheory = async () => {
+export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportFormProps) {
+  const [reason, setReason] = useState<string>("");
+  const [details, setDetails] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const targetLabels = {
+    theory: "теорию",
+    card: "карточку",
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reason) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    const reportData = {
+      reason,
+      details: details || null,
+      theoryId: targetType === "theory" ? targetId : null,
+      cardId: targetType === "card" ? targetId : null,
+    };
+
     try {
-      setIsLoading(true);
-      const response = await fetch(`/api/theories/${slug}`);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Теория не найдена");
-        }
-        throw new Error("Ошибка при загрузке теории");
-      }
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportData),
+      });
 
       const data = await response.json();
-      setTheory(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Произошла ошибка");
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при отправке жалобы");
+      }
+
+      setSuccess(true);
+      setReason("");
+      setDetails("");
+      
+      // Закрыть диалог через 2 секунды
+      setTimeout(() => {
+        setSuccess(false);
+        onOpenChange(false);
+      }, 2000);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Произошла ошибка");
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadTheory();
-  }, [slug]);
-
-  const handleAddEvidence = () => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
-    }
-    setIsEvidenceFormOpen(true);
+  const handleClose = () => {
+    setReason("");
+    setDetails("");
+    setError(null);
+    setSuccess(false);
+    onOpenChange(false);
   };
-
-  const handleVoteUpdate = (cardId: string, newStrength: number) => {
-    setTheory((prevTheory: any) => {
-      if (!prevTheory) return prevTheory;
-
-      const updatedCards = prevTheory.evidenceCards.map((card: any) => {
-        if (card.id === cardId) {
-          const currentVotes = card.voteStats?.count || 0;
-          const currentAvg = card.voteStats?.averageStrength || 0;
-          const userHadVote = card.userVote !== null && card.userVote !== undefined;
-
-          let newVoteCount: number;
-          let newAvgStrength: number;
-
-          if (userHadVote) {
-            const totalStrength = currentAvg * currentVotes;
-            const newTotalStrength = totalStrength - (card.userVote || 0) + newStrength;
-            newVoteCount = currentVotes;
-            newAvgStrength = newTotalStrength / newVoteCount;
-          } else {
-            const totalStrength = currentAvg * currentVotes;
-            const newTotalStrength = totalStrength + newStrength;
-            newVoteCount = currentVotes + 1;
-            newAvgStrength = newTotalStrength / newVoteCount;
-          }
-
-          return {
-            ...card,
-            voteStats: {
-              count: newVoteCount,
-              averageStrength: newAvgStrength,
-            },
-            userVote: newStrength,
-          };
-        }
-        return card;
-      });
-
-      return {
-        ...prevTheory,
-        evidenceCards: updatedCards,
-      };
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p className="text-muted-foreground">Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (error || !theory) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p className="text-red-600">{error || "Теория не найдена"}</p>
-      </div>
-    );
-  }
-
-  const forCards = mapEvidenceCards(filterCardsByStance(theory.evidenceCards, "FOR"));
-  const againstCards = mapEvidenceCards(filterCardsByStance(theory.evidenceCards, "AGAINST"));
-  const voteStats = calculateVoteStats(theory.evidenceCards);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
-      <TheoryHeader
-        title={theory.title}
-        realm={theory.realm}
-        topic={theory.topic}
-        tags={theory.tags}
-        status={theory.status}
-      />
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Пожаловаться на {targetLabels[targetType]}</DialogTitle>
+          <DialogDescription>
+            Опишите причину жалобы. Модераторы рассмотрят её в ближайшее время.
+          </DialogDescription>
+        </DialogHeader>
 
-      <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />
+        {success ? (
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Жалоба успешно отправлена. Спасибо за помощь в модерации!
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-      <ConfidenceBar
-        forScore={voteStats.forScore}
-        againstScore={voteStats.againstScore}
-        totalVotes={voteStats.totalVotes}
-      />
+            <div className="space-y-4">
+              <Label className="text-base">Причина жалобы *</Label>
+              <RadioGroup value={reason} onValueChange={setReason}>
+                <div className="space-y-3">
+                  {REPORT_REASONS.map((r) => (
+                    <div
+                      key={r.value}
+                      className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${
+                        reason === r.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => setReason(r.value)}
+                    >
+                      <RadioGroupItem 
+                        value={r.value} 
+                        id={r.value}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <Label 
+                          htmlFor={r.value} 
+                          className="cursor-pointer font-medium text-base"
+                        >
+                          {r.label}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          {r.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
+            </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
-        <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} onVoteUpdate={handleVoteUpdate} />
-      </div>
+            <div className="space-y-3">
+              <Label htmlFor="details" className="text-base">
+                Подробности {reason === "OTHER" && "(обязательно для причины 'Другое')"}
+              </Label>
+              <Textarea
+                id="details"
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder="Опишите подробнее причину жалобы..."
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-sm text-muted-foreground">
+                Предоставьте дополнительную информацию, которая поможет модераторам
+                принять правильное решение.
+              </p>
+            </div>
 
-      <AllEvidence 
-        forCards={forCards} 
-        againstCards={againstCards} 
-        onAddCard={handleAddEvidence}
-        onVoteUpdate={handleVoteUpdate}
-      />
-
-      {status === "authenticated" && (
-        <EvidenceForm
-          theoryId={theory.id}
-          open={isEvidenceFormOpen}
-          onOpenChange={setIsEvidenceFormOpen}
-          onSuccess={loadTheory}
-        />
-      )}
-
-      <ReportForm
-        open={isTheoryReportModalOpen}
-        onOpenChange={setIsTheoryReportModalOpen}
-        targetId={theory.id}
-        targetType="theory"
-      />
-    </div>
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Отмена
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !reason || (reason === "OTHER" && !details.trim())}
+              >
+                {isLoading ? "Отправка..." : "Отправить жалобу"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
