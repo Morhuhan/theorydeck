@@ -8,7 +8,7 @@ import { ConfidenceBar } from "./ConfidenceBar";
 import { TopEvidence } from "./TopEvidence";
 import { AllEvidence } from "./AllEvidence";
 import { EvidenceForm } from "@/components/forms/EvidenceForm";
-import { ReportModal } from "@/components/reports/ReportModal";
+import { ReportForm } from "@/components/forms/ReportForm";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { calculateVoteStats, filterCardsByStance, mapEvidenceCards } from "@/lib/utils/vote-stats";
@@ -162,11 +162,11 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         />
       )}
 
-      <ReportModal
+      <ReportForm
         open={isTheoryReportModalOpen}
         onOpenChange={setIsTheoryReportModalOpen}
-        targetType="THEORY"
         targetId={theory.id}
+        targetType="theory"
       />
     </div>
   );
