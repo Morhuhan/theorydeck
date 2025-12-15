@@ -59,7 +59,6 @@ export function EvidenceCard({
     setIsReportModalOpen(false);
   };
 
-  // Безопасное преобразование averageStrength
   const safeAverageStrength = typeof averageStrength === 'number' && !isNaN(averageStrength) 
     ? averageStrength 
     : 0;
