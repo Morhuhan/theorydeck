@@ -1,3 +1,4 @@
+// components/theory/TheoryPage.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,8 +9,6 @@ import { TopEvidence } from "./TopEvidence";
 import { AllEvidence } from "./AllEvidence";
 import { EvidenceForm } from "@/components/forms/EvidenceForm";
 import { ReportModal } from "@/components/reports/ReportModal";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -95,21 +94,16 @@ export function TheoryPage({ slug }: TheoryPageProps) {
         againstScore={againstCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
       />
 
-      {status === "authenticated" && (
-        <div className="flex justify-center">
-          <Button onClick={handleAddEvidence} size="lg">
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить доказательство
-          </Button>
-        </div>
-      )}
-
       <div className="grid md:grid-cols-2 gap-8">
         <TopEvidence title="Топ доказательств ЗА" stance="FOR" cards={forCards.slice(0, 3)} />
         <TopEvidence title="Топ доказательств ПРОТИВ" stance="AGAINST" cards={againstCards.slice(0, 3)} />
       </div>
 
-      <AllEvidence forCards={forCards} againstCards={againstCards} />
+      <AllEvidence 
+        forCards={forCards} 
+        againstCards={againstCards} 
+        onAddCard={handleAddEvidence}
+      />
 
       {status === "authenticated" && (
         <EvidenceForm

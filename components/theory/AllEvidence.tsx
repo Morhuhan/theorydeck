@@ -29,10 +29,12 @@ export function AllEvidence({ forCards, againstCards, onAddCard }: AllEvidencePr
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Все доказательства</h2>
-        <Button onClick={onAddCard}>
-          <Plus className="h-4 w-4 mr-2" />
-          Добавить карточку
-        </Button>
+        {onAddCard && (
+          <Button onClick={onAddCard}>
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить доказательство
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="for" className="w-full">
