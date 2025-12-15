@@ -49,19 +49,18 @@ export function EvidenceCard({
 
   const handleReportSubmit = () => {
     console.log(`Report submitted for evidence card ${id}`);
-    // Здесь будет логика отправки репорта
     setIsReportModalOpen(false);
   };
 
   return (
     <>
-      <Card className={`border-l-4 ${stanceColor} ${stanceBg} relative`}>
+      <Card className={`border-l-4 ${stanceColor} ${stanceBg} relative overflow-hidden`}>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <Badge variant={stance === "FOR" ? "default" : "destructive"}>
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant={stance === "FOR" ? "default" : "destructive"} className="flex-shrink-0">
               {stance === "FOR" ? "За" : "Против"}
             </Badge>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <ThumbsUp className="h-4 w-4" />
                 <span className="font-semibold">{averageStrength.toFixed(1)}</span>
@@ -77,10 +76,10 @@ export function EvidenceCard({
         </CardHeader>
         
         <CardContent className="space-y-3">
-          <p className="text-sm">{content}</p>
+          <p className="text-sm break-all overflow-wrap-anywhere">{content}</p>
           
           {context && (
-            <p className="text-xs text-muted-foreground italic">{context}</p>
+            <p className="text-xs text-muted-foreground italic break-all overflow-wrap-anywhere">{context}</p>
           )}
           
           {source && (
@@ -88,10 +87,10 @@ export function EvidenceCard({
               href={source} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline break-all overflow-wrap-anywhere"
             >
-              <ExternalLink className="h-3 w-3" />
-              {sourceTitle || "Источник"}
+              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+              <span className="break-all">{sourceTitle || "Источник"}</span>
             </a>
           )}
 
@@ -99,8 +98,8 @@ export function EvidenceCard({
         </CardContent>
         
         <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{authorName || "Аноним"}</span>
-          <span>{voteCount} {voteCount === 1 ? "оценка" : voteCount < 5 ? "оценки" : "оценок"}</span>
+          <span className="truncate max-w-[150px]">{authorName || "Аноним"}</span>
+          <span className="whitespace-nowrap">{voteCount} {voteCount === 1 ? "оценка" : voteCount < 5 ? "оценки" : "оценок"}</span>
         </CardFooter>
       </Card>
 
