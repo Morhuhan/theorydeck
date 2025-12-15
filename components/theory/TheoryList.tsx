@@ -4,6 +4,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { TheoryCard } from "./TheoryCard";
 import { Hero } from "@/components/home/Hero";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
@@ -82,14 +83,12 @@ export function TheoryList() {
     }
   }, []);
 
-  // Загрузка при изменении поискового запроса
   useEffect(() => {
     setPage(0);
     setHasMore(true);
     loadTheories(0, debouncedSearch, false);
   }, [debouncedSearch, loadTheories]);
 
-  // Intersection Observer для ленивой подгрузки
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -114,33 +113,21 @@ export function TheoryList() {
     };
   }, [hasMore, isLoading, isLoadingMore, page, debouncedSearch, loadTheories]);
 
-  if (isLoading && theories.length === 0) {
-    return (
-      <>
-        <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
+  return (
+    <>
+      <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
+      <Separator className="my-8" />
+
+      {isLoading && theories.length === 0 ? (
         <div className="mb-8 text-center py-12">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
           <p className="text-muted-foreground mt-4">Загрузка теорий...</p>
         </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
+      ) : error ? (
         <div className="mb-8 text-center py-12">
           <p className="text-red-600">{error}</p>
         </div>
-      </>
-    );
-  }
-
-  if (theories.length === 0) {
-    return (
-      <>
-        <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
+      ) : theories.length === 0 ? (
         <div className="mb-8 text-center py-12">
           <p className="text-muted-foreground">
             {searchQuery 
@@ -149,40 +136,36 @@ export function TheoryList() {
             }
           </p>
         </div>
-      </>
-    );
-  }
+      ) : (
+        <>
+          <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr max-w-8xl mx-auto">
+            {theories.map((theory) => (
+              <TheoryCard
+                key={theory.id}
+                id={theory.id}
+                slug={theory.slug}
+                title={theory.title}
+                claim={theory.claim}
+                tldr={theory.tldr}
+                realm={theory.realm || undefined}
+                topic={theory.topic || undefined}
+                tags={theory.tags}
+                status={theory.status as any}
+                createdAt={new Date(theory.createdAt)}
+                authorName={theory.author.name || theory.author.email || "Аноним"}
+                evidenceCount={theory._count.evidenceCards}
+                forPercent={50}
+              />
+            ))}
+          </div>
 
-  return (
-    <>
-      <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
-      
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr max-w-8xl mx-auto">
-        {theories.map((theory) => (
-          <TheoryCard
-            key={theory.id}
-            id={theory.id}
-            slug={theory.slug}
-            title={theory.title}
-            claim={theory.claim}
-            tldr={theory.tldr}
-            realm={theory.realm || undefined}
-            topic={theory.topic || undefined}
-            tags={theory.tags}
-            status={theory.status as any}
-            createdAt={new Date(theory.createdAt)}
-            authorName={theory.author.name || theory.author.email || "Аноним"}
-            evidenceCount={theory._count.evidenceCards}
-            forPercent={50}
-          />
-        ))}
-      </div>
-
-      <div ref={observerTarget} className="h-20 flex items-center justify-center">
-        {isLoadingMore && (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        )}
-      </div>
+          <div ref={observerTarget} className="h-20 flex items-center justify-center">
+            {isLoadingMore && (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 }

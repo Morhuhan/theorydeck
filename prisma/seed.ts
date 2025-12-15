@@ -1,11 +1,6 @@
 import 'dotenv/config';
 import { PrismaClient } from "@prisma/client";
-import {
-  UserRole,
-  TheoryStatus,
-  Stance,
-  CardStatus
-} from "@prisma/client";
+import { TheoryStatus, Stance, CardStatus, UserRole } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
@@ -15,7 +10,6 @@ if (!process.env.DIRECT_URL) {
 }
 
 const dbUrl = process.env.DIRECT_URL;
-
 const match = dbUrl.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+?)(\?|$)/);
 
 if (!match) {
@@ -23,7 +17,6 @@ if (!match) {
 }
 
 const [, user, password, host, port, database] = match;
-
 const pool = new Pool({
   host,
   port: parseInt(port),
@@ -37,7 +30,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('🌱 Starting seed...');
+  console.log('🌱 Начинаем сидирование...');
 
   await prisma.report.deleteMany();
   await prisma.vote.deleteMany();
@@ -47,191 +40,687 @@ async function main() {
   await prisma.account.deleteMany();
   await prisma.user.deleteMany();
 
-  const password1 = await bcrypt.hash('alice123', 10);
-  const password2 = await bcrypt.hash('bob123', 10);
-  const password3 = await bcrypt.hash('charlie123', 10);
-
-  const user1 = await prisma.user.create({
-    data: {
-      email: 'alice@example.com',
-      name: 'Alice Johnson',
-      password: password1,
+  const usersData = [
+    {
+      email: 'alex@example.com',
+      name: 'Алексей Петров',
+      password: 'alex123',
       role: UserRole.USER,
     },
-  });
-
-  const user2 = await prisma.user.create({
-    data: {
-      email: 'bob@example.com',
-      name: 'Bob Smith',
-      password: password2,
+    {
+      email: 'maria@example.com',
+      name: 'Мария Смирнова',
+      password: 'maria123',
       role: UserRole.USER,
     },
-  });
-
-  const user3 = await prisma.user.create({
-    data: {
-      email: 'charlie@example.com',
-      name: 'Charlie Davis',
-      password: password3,
+    {
+      email: 'ivan@example.com',
+      name: 'Иван Козлов',
+      password: 'ivan123',
       role: UserRole.USER,
     },
-  });
+    {
+      email: 'olga@example.com',
+      name: 'Ольга Новикова',
+      password: 'olga123',
+      role: UserRole.USER,
+    },
+  ];
 
-  const theory1 = await prisma.theory.create({
+  const createdUsers = [];
+  for (const userData of usersData) {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: userData.email,
+        name: userData.name,
+        password: hashedPassword,
+        role: userData.role,
+      },
+    });
+    createdUsers.push(user);
+  }
+
+  const theories = [
+    {
+      slug: 'iskusstvennyj-intellekt-vyzovet-massovuyu-bezrabotitsu',
+      title: 'Искусственный интеллект вызовет массовую безработицу',
+      claim: 'Внедрение ИИ приведет к потере 30% рабочих мест в течение следующего десятилетия.',
+      tldr: 'Автоматизация на основе ИИ заменит многие профессии, особенно в сфере услуг и офисной работы.',
+      realm: 'Технологии',
+      topic: 'Искусственный интеллект',
+      tags: ['ИИ', 'работа', 'будущее'],
+    },
+    {
+      slug: 'kvantovye-kompyutery-slomat-kriptografiyu',
+      title: 'Квантовые компьютеры сломают современную криптографию',
+      claim: 'Квантовые вычисления сделают большинство современных алгоритмов шифрования уязвимыми.',
+      tldr: 'Алгоритм Шора позволяет квантовым компьютерам быстро решать задачи факторизации.',
+      realm: 'Технологии',
+      topic: 'Квантовые вычисления',
+      tags: ['кванты', 'безопасность', 'шифрование'],
+    },
+    {
+      slug: 'elektromobili-zamenyat-dvs-k-2035',
+      title: 'Электромобили полностью заменят ДВС к 2035 году',
+      claim: 'К 2035 году продажи новых автомобилей с ДВС прекратятся в большинстве развитых стран.',
+      tldr: 'Экологические нормы и развитие технологий ускорят переход на электромобили.',
+      realm: 'Технологии',
+      topic: 'Транспорт',
+      tags: ['электромобили', 'экология', 'авто'],
+    },
+    {
+      slug: 'izmenenie-klimata-neobratimo',
+      title: 'Изменение климата уже необратимо',
+      claim: 'Глобальное потепление прошло точку невозврата, и последствия неизбежны.',
+      tldr: 'Уровень CO2 превысил критический порог, что запустило необратимые процессы.',
+      realm: 'Наука',
+      topic: 'Климат',
+      tags: ['климат', 'экология', 'глобальное потепление'],
+    },
+    {
+      slug: 'zhizn-na-marse-byla-v-proshlom',
+      title: 'Жизнь на Марсе существовала в прошлом',
+      claim: 'Марс имел условия для жизни миллиарды лет назад, и следы этой жизни могут быть найдены.',
+      tldr: 'Данные марсоходов указывают на наличие жидкой воды в прошлом Марса.',
+      realm: 'Наука',
+      topic: 'Космос',
+      tags: ['Марс', 'астробиология', 'космос'],
+    },
+    {
+      slug: 'chelovechestvo-stolknetsya-s-inoplanetnym-razumom',
+      title: 'Человечество столкнется с инопланетным разумом до 2050 года',
+      claim: 'Контакт с внеземной цивилизацией произойдет в ближайшие 25 лет.',
+      tldr: 'Увеличение мощности телескопов и поиск техносигнатур ускоряют обнаружение.',
+      realm: 'Наука',
+      topic: 'SETI',
+      tags: ['инопланетяне', 'SETI', 'космос'],
+    },
+    {
+      slug: 'gennaya-terapiya-izlechit-rak',
+      title: 'Генная терапия полностью излечит рак к 2040 году',
+      claim: 'Развитие CRISPR и других технологий позволит победить большинство видов рака.',
+      tldr: 'Персонализированная генная терапия станет стандартом лечения онкологии.',
+      realm: 'Здоровье',
+      topic: 'Медицина',
+      tags: ['рак', 'генетика', 'медицина'],
+    },
+    {
+      slug: 'umenshenie-sna-vredit-zdorovyu',
+      title: 'Сокращение сна до 6 часов серьезно вредит здоровью',
+      claim: 'Хронический недосып повышает риск деменции, диабета и сердечных заболеваний.',
+      tldr: 'Мозг очищается от токсинов во время сна, и его недостаток нарушает этот процесс.',
+      realm: 'Здоровье',
+      topic: 'Сон',
+      tags: ['сон', 'здоровье', 'мозг'],
+    },
+    {
+      slug: 'intermittent-fasting-prodlevaet-zhizn',
+      title: 'Интервальное голодание продлевает жизнь',
+      claim: 'Режим питания 16/8 увеличивает продолжительность жизни на 20-30%.',
+      tldr: 'Аутофагия, запускаемая голоданием, омолаживает клетки организма.',
+      realm: 'Здоровье',
+      topic: 'Питание',
+      tags: ['голодание', 'долголетие', 'питание'],
+    },
+    {
+      slug: 'universalnyj-bazovyj-dohod-stanet-neobhodimostyu',
+      title: 'Универсальный базовый доход станет необходимостью',
+      claim: 'Автоматизация сделает УБД обязательным для социальной стабильности.',
+      tldr: 'Исчезновение традиционных рабочих мест потребует новой системы распределения.',
+      realm: 'Общество',
+      topic: 'Экономика',
+      tags: ['УБД', 'экономика', 'социум'],
+    },
+    {
+      slug: 'onlajn-obrazovanie-zamenit-tradicionnoe',
+      title: 'Онлайн-образование полностью заменит традиционное',
+      claim: 'К 2030 году большинство людей будет получать образование через интернет.',
+      tldr: 'Пандемия ускорила переход к дистанционному обучению, и это необратимо.',
+      realm: 'Общество',
+      topic: 'Образование',
+      tags: ['образование', 'онлайн', 'технологии'],
+    },
+    {
+      slug: 'metavselennaya-izmenit-sotsialnye-vzaimodejstviya',
+      title: 'Метавселенная изменит социальные взаимодействия',
+      claim: 'Виртуальные миры станут основной платформой для общения и работы.',
+      tldr: 'Технологии VR/AR создадут новые формы социальных связей.',
+      realm: 'Общество',
+      topic: 'Технологии',
+      tags: ['метавселенная', 'VR', 'социум'],
+    },
+  ];
+
+const createdTheories = [];
+for (let i = 0; i < theories.length; i++) {
+  const theoryData = theories[i];
+  const authorId = createdUsers[i % createdUsers.length].id;
+  const theory = await prisma.theory.create({
     data: {
-      slug: 'ai-will-achieve-agi-by-2030',
-      title: 'AI will achieve AGI by 2030',
-      claim: 'Artificial General Intelligence (AGI) will be achieved by major AI labs before the end of 2030.',
-      tldr: 'With rapid progress in large language models, multimodal AI, and reasoning capabilities, several experts predict AGI could emerge within the next 5-7 years. This theory examines whether current trajectories support this timeline.',
+      ...theoryData,
       status: TheoryStatus.ACTIVE,
-      realm: 'Technology',
-      topic: 'Artificial Intelligence',
-      tags: ['AI', 'AGI', 'Future', 'Technology'],
-      authorId: user1.id,
+      authorId: authorId,
     },
   });
-
-  const theory2 = await prisma.theory.create({
-    data: {
-      slug: 'remote-work-increases-productivity',
-      title: 'Remote work increases productivity',
-      claim: 'Employees working remotely are more productive than those working in traditional office environments.',
-      tldr: 'Multiple studies show mixed results on remote work productivity. While some workers thrive with flexibility, others struggle with isolation and distractions. This theory explores the evidence on both sides.',
-      status: TheoryStatus.ACTIVE,
-      realm: 'Business',
-      topic: 'Work Culture',
-      tags: ['Remote Work', 'Productivity', 'Business'],
-      authorId: user2.id,
-    },
-  });
-
-  const theory3 = await prisma.theory.create({
-    data: {
-      slug: 'mediterranean-diet-reduces-heart-disease',
-      title: 'Mediterranean diet significantly reduces heart disease risk',
-      claim: 'Following a Mediterranean diet can reduce the risk of cardiovascular disease by 30% or more.',
-      tldr: 'The Mediterranean diet, rich in olive oil, fish, vegetables, and whole grains, has been studied extensively for its health benefits. Evidence suggests significant cardiovascular benefits.',
-      status: TheoryStatus.ACTIVE,
-      realm: 'Health',
-      topic: 'Nutrition',
-      tags: ['Health', 'Diet', 'Heart Disease', 'Nutrition'],
-      authorId: user3.id,
-    },
-  });
-
-  const card1 = await prisma.evidenceCard.create({
-    data: {
-      content: 'OpenAI CEO Sam Altman stated in multiple interviews that AGI could be achieved within "a few thousand days" from 2024, suggesting a 2030-2032 timeline.',
-      source: 'https://example.com/altman-agi-timeline',
-      sourceTitle: 'Sam Altman on AGI Timeline',
-      context: 'Interview with major tech publication',
-      stance: Stance.FOR,
-      status: CardStatus.ACTIVE,
-      theoryId: theory1.id,
-      authorId: user1.id,
-    },
-  });
-
-  const card2 = await prisma.evidenceCard.create({
-    data: {
-      content: 'Current AI models still struggle with basic reasoning tasks that humans find trivial. The gap between narrow AI and general intelligence remains vast.',
-      source: 'https://example.com/ai-limitations-2024',
-      sourceTitle: 'AI Reasoning Limitations Study',
-      context: 'Academic research paper',
-      stance: Stance.AGAINST,
-      status: CardStatus.ACTIVE,
-      theoryId: theory1.id,
-      authorId: user2.id,
-    },
-  });
-
-  const card3 = await prisma.evidenceCard.create({
-    data: {
-      content: 'DeepMind\'s recent advances in protein folding and mathematical reasoning show exponential progress in AI capabilities over the past 3 years.',
-      source: 'https://example.com/deepmind-advances',
-      sourceTitle: 'DeepMind Research Breakthroughs',
-      stance: Stance.FOR,
-      status: CardStatus.ACTIVE,
-      theoryId: theory1.id,
-      authorId: user3.id,
-    },
-  });
-
-  const card4 = await prisma.evidenceCard.create({
-    data: {
-      content: 'A Stanford study of 10,000 workers found that remote employees completed 13% more tasks and reported higher job satisfaction.',
-      source: 'https://example.com/stanford-remote-work-study',
-      sourceTitle: 'Stanford Remote Work Productivity Study 2023',
-      stance: Stance.FOR,
-      status: CardStatus.ACTIVE,
-      theoryId: theory2.id,
-      authorId: user1.id,
-    },
-  });
-
-  const card5 = await prisma.evidenceCard.create({
-    data: {
-      content: 'Microsoft internal data showed that remote workers had 40% more meetings and worked longer hours, but actual output measured by completed projects decreased.',
-      source: 'https://example.com/microsoft-productivity-analysis',
-      sourceTitle: 'Microsoft Workplace Analytics Report',
-      stance: Stance.AGAINST,
-      status: CardStatus.ACTIVE,
-      theoryId: theory2.id,
-      authorId: user2.id,
-    },
-  });
-
-  const card6 = await prisma.evidenceCard.create({
-    data: {
-      content: 'The PREDIMED study followed 7,447 participants and found a 30% reduction in major cardiovascular events among those following a Mediterranean diet.',
-      source: 'https://example.com/predimed-study',
-      sourceTitle: 'PREDIMED Clinical Trial Results',
-      context: 'Randomized controlled trial published in NEJM',
-      stance: Stance.FOR,
-      status: CardStatus.ACTIVE,
-      theoryId: theory3.id,
-      authorId: user3.id,
-    },
-  });
-
-  await prisma.vote.createMany({
-    data: [
-      { userId: user1.id, cardId: card1.id, strength: 8 },
-      { userId: user2.id, cardId: card1.id, strength: 5 },
-      { userId: user3.id, cardId: card1.id, strength: 10 },
-      { userId: user1.id, cardId: card2.id, strength: 5 },
-      { userId: user2.id, cardId: card2.id, strength: 8 },
-      { userId: user3.id, cardId: card2.id, strength: 2 },
-      { userId: user1.id, cardId: card3.id, strength: 10 },
-      { userId: user2.id, cardId: card3.id, strength: 8 },
-      { userId: user1.id, cardId: card4.id, strength: 8 },
-      { userId: user2.id, cardId: card4.id, strength: 10 },
-      { userId: user3.id, cardId: card4.id, strength: 5 },
-      { userId: user1.id, cardId: card5.id, strength: 5 },
-      { userId: user3.id, cardId: card5.id, strength: 8 },
-      { userId: user1.id, cardId: card6.id, strength: 10 },
-      { userId: user2.id, cardId: card6.id, strength: 8 },
-    ],
-  });
-
-  console.log('✅ Seed completed successfully!');
-  console.log(`Created:`);
-  console.log(`- 3 users`);
-  console.log(`- 3 theories`);
-  console.log(`- 6 evidence cards`);
-  console.log(`- 15 votes`);
-  console.log('');
-  console.log('👤 User credentials:');
-  console.log(`1. ${user1.email} / alice123`);
-  console.log(`2. ${user2.email} / bob123`);
-  console.log(`3. ${user3.email} / charlie123`);
+  createdTheories.push(theory);
 }
+
+const evidenceCards = [
+  // Теория 1: Искусственный интеллект вызовет массовую безработицу
+  {
+    content: 'Исследование McKinsey показывает, что до 30% рабочих часов могут быть автоматизированы с помощью ИИ к 2030 году.',
+    stance: Stance.FOR,
+    source: 'https://example.com/mckinsey-ai-automation',
+    strength: 8,
+  },
+  {
+    content: 'OpenAI ChatGPT уже заменяет контент-менеджеров и копирайтеров, сокращая спрос на эти профессии на 15%.',
+    stance: Stance.FOR,
+    source: 'https://example.com/chatgpt-jobs-impact',
+    strength: 7,
+  },
+  {
+    content: 'Автоматизация на основе ИИ в производстве сократила 2.4 миллиона рабочих мест в США за последние 5 лет.',
+    stance: Stance.FOR,
+    source: 'https://example.com/manufacturing-ai-job-loss',
+    strength: 9,
+  },
+  {
+    content: 'Внедрение ИИ создаст больше рабочих мест, чем уничтожит, как это было с предыдущими технологическими революциями.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ai-job-creation',
+    strength: 6,
+  },
+  {
+    content: 'Спрос на специалистов по ИИ вырос на 74% в 2023 году, создавая новые высокооплачиваемые профессии.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ai-specialist-demand',
+    strength: 7,
+  },
+  {
+    content: 'ИИ повышает производительность, что приводит к экономическому росту и созданию новых отраслей.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ai-productivity-growth',
+    strength: 5,
+  },
+
+  // Теория 2: Квантовые компьютеры сломают современную криптографию
+  {
+    content: 'Google уже продемонстрировал квантовое превосходство, решая задачу за 200 секунд вместо 10 000 лет.',
+    stance: Stance.FOR,
+    source: 'https://example.com/google-quantum-supremacy',
+    strength: 8,
+  },
+  {
+    content: 'Алгоритм Шора позволяет квантовым компьютерам взломать RSA-шифрование за полиномиальное время.',
+    stance: Stance.FOR,
+    source: 'https://example.com/shors-algorithm',
+    strength: 9,
+  },
+  {
+    content: 'Квантовые атаки на криптографические протоколы станут реальной угрозой уже через 5-10 лет.',
+    stance: Stance.FOR,
+    source: 'https://example.com/quantum-threat-timeline',
+    strength: 7,
+  },
+  {
+    content: 'Квантовые компьютеры требуют температуры близкой к абсолютному нулю, что ограничивает их применение в ближайшие десятилетия.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/quantum-limitations',
+    strength: 6,
+  },
+  {
+    content: 'Уже разрабатывается пост-квантовая криптография, устойчивая к квантовым атакам.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/post-quantum-crypto',
+    strength: 8,
+  },
+  {
+    content: 'Практическое применение квантовых компьютеров для взлома криптосистем потребует миллионов кубитов.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/quantum-scale-requirements',
+    strength: 7,
+  },
+
+  // Теория 3: Электромобили полностью заменят ДВС к 2035 году
+  {
+    content: 'ЕС планирует запретить продажи новых автомобилей с ДВС с 2035 года.',
+    stance: Stance.FOR,
+    source: 'https://example.com/eu-combustion-ban',
+    strength: 9,
+  },
+  {
+    content: 'Норвегия уже достигла 80% доли электромобилей в новых продажах.',
+    stance: Stance.FOR,
+    source: 'https://example.com/norway-ev-sales',
+    strength: 8,
+  },
+  {
+    content: 'Стоимость аккумуляторов упала на 89% за последние 10 лет, делая электромобили доступнее.',
+    stance: Stance.FOR,
+    source: 'https://example.com/battery-cost-decline',
+    strength: 7,
+  },
+  {
+    content: 'Развивающиеся страны не смогут перейти на электромобили из-за высокой стоимости инфраструктуры.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/developing-countries-ev',
+    strength: 6,
+  },
+  {
+    content: 'Производство электромобилей требует редкоземельных металлов, запасы которых ограничены.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/rare-earth-limitations',
+    strength: 7,
+  },
+  {
+    content: 'Водородные автомобили могут составить конкуренцию электромобилям в коммерческом транспорте.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/hydrogen-competition',
+    strength: 5,
+  },
+
+  // Теория 4: Изменение климата уже необратимо
+  {
+    content: 'Концентрация CO2 в атмосфере достигла 420 ppm, что выше доиндустриального уровня на 50%.',
+    stance: Stance.FOR,
+    source: 'https://example.com/co2-levels-2024',
+    strength: 9,
+  },
+  {
+    content: 'Таяние арктических льдов прошло точку невозврата, что ведет к необратимому повышению уровня моря.',
+    stance: Stance.FOR,
+    source: 'https://example.com/arctic-tipping-point',
+    strength: 8,
+  },
+  {
+    content: 'Выбросы метана из вечной мерзлоты создают положительную обратную связь, ускоряющую потепление.',
+    stance: Stance.FOR,
+    source: 'https://example.com/permafrost-methane',
+    strength: 7,
+  },
+  {
+    content: 'Технологии улавливания углерода могут снизить уровень CO2 в атмосфере на 10% к 2040 году.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/carbon-capture-potential',
+    strength: 6,
+  },
+  {
+    content: 'Переход на возобновляемую энергию ускоряется и может ограничить потепление 1.5°C.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/renewable-transition',
+    strength: 7,
+  },
+  {
+    content: 'Геоинженерия предлагает способы искусственного охлаждения планеты, такие как распыление аэрозолей.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/geoengineering-solutions',
+    strength: 5,
+  },
+
+  // Теория 5: Жизнь на Марсе существовала в прошлом
+  {
+    content: 'Марсоход Perseverance обнаружил органические молекулы в кратере Езеро.',
+    stance: Stance.FOR,
+    source: 'https://example.com/mars-organic-molecules',
+    strength: 8,
+  },
+  {
+    content: 'Данные с орбитальных аппаратов показывают следы древних рек и озер на Марсе.',
+    stance: Stance.FOR,
+    source: 'https://example.com/mars-ancient-water',
+    strength: 9,
+  },
+  {
+    content: 'Найдены метановые всплески в атмосфере Марса, что может указывать на биологическую активность.',
+    stance: Stance.FOR,
+    source: 'https://example.com/mars-methane-spikes',
+    strength: 7,
+  },
+  {
+    content: 'Органические молекулы могли быть занесены метеоритами, а не иметь биологическое происхождение.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/meteorite-contamination',
+    strength: 6,
+  },
+  {
+    content: 'Высокий уровень радиации на поверхности Марса делает невозможным сохранение сложных органических соединений.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/mars-radiation-damage',
+    strength: 8,
+  },
+  {
+    content: 'Кислотность древних марсианских океанов была слишком высока для развития жизни.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/mars-ocean-acidity',
+    strength: 5,
+  },
+
+  // Теория 6: Контакт с инопланетным разумом до 2050 года
+  {
+    content: 'Телескоп James Webb способен анализировать атмосферы экзопланет на наличие биосигнатур.',
+    stance: Stance.FOR,
+    source: 'https://example.com/jwst-exoplanets',
+    strength: 8,
+  },
+  {
+    content: 'Проект SETI удвоил свои вычислительные мощности для анализа сигналов из космоса.',
+    stance: Stance.FOR,
+    source: 'https://example.com/seti-computing-power',
+    strength: 7,
+  },
+  {
+    content: 'Обнаружено 5,000 экзопланет в обитаемых зонах, что увеличивает шансы на существование жизни.',
+    stance: Stance.FOR,
+    source: 'https://example.com/exoplanets-habitable-zone',
+    strength: 9,
+  },
+  {
+    content: 'Вероятность существования технологической цивилизации в нашей галактике крайне мала (парадокс Ферми).',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/fermi-paradox',
+    strength: 8,
+  },
+  {
+    content: 'Радиосигналы ослабевают с расстоянием, делая обнаружение сигналов других цивилизаций маловероятным.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/signal-attenuation',
+    strength: 7,
+  },
+  {
+    content: 'Технологические цивилизации могут существовать слишком недолго, чтобы перекрываться во времени.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/civilization-lifespan',
+    strength: 6,
+  },
+
+  // Теория 7: Генная терапия излечит рак к 2040 году
+  {
+    content: 'CRISPR-терапия уже показала эффективность в лечении серповидноклеточной анемии.',
+    stance: Stance.FOR,
+    source: 'https://example.com/crispr-sickle-cell',
+    strength: 9,
+  },
+  {
+    content: 'CAR-T терапия достигла 80% ремиссии при определенных типах лейкемии.',
+    stance: Stance.FOR,
+    source: 'https://example.com/car-t-leukemia',
+    strength: 8,
+  },
+  {
+    content: 'Персонализированные вакцины на основе мРНК показали многообещающие результаты в клинических испытаниях.',
+    stance: Stance.FOR,
+    source: 'https://example.com/mrna-cancer-vaccines',
+    strength: 7,
+  },
+  {
+    content: 'Рак вызывает множество мутаций, что делает универсальное лечение невозможным.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/cancer-complexity',
+    strength: 6,
+  },
+  {
+    content: 'Генная терапия может иметь серьезные побочные эффекты, включая онкогенез.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/gene-therapy-risks',
+    strength: 7,
+  },
+  {
+    content: 'Высокая стоимость генной терапии делает ее недоступной для большинства пациентов.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/gene-therapy-cost',
+    strength: 5,
+  },
+
+  // Теория 8: Сокращение сна до 6 часов вредит здоровью
+  {
+    content: 'Исследование показало, что сон менее 6 часов увеличивает риск деменции на 30%.',
+    stance: Stance.FOR,
+    source: 'https://example.com/sleep-dementia-study',
+    strength: 9,
+  },
+  {
+    content: 'Хронический недосып повышает риск развития диабета 2 типа на 40%.',
+    stance: Stance.FOR,
+    source: 'https://example.com/sleep-diabetes-risk',
+    strength: 8,
+  },
+  {
+    content: 'Сокращение сна нарушает выработку лептина и грелина, приводя к ожирению.',
+    stance: Stance.FOR,
+    source: 'https://example.com/sleep-hormones-obesity',
+    strength: 7,
+  },
+  {
+    content: 'Некоторым людям достаточно 6 часов сна без негативных последствий (генетическая особенность).',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/short-sleep-gene',
+    strength: 6,
+  },
+  {
+    content: 'Качество сна важнее его продолжительности - 6 часов глубокого сна могут быть лучше 8 часов беспокойного.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/sleep-quality-over-quantity',
+    strength: 7,
+  },
+  {
+    content: 'Дневной сон может компенсировать недостаток ночного сна без вреда для здоровья.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/nap-compensation',
+    strength: 5,
+  },
+
+  // Теория 9: Интервальное голодание продлевает жизнь
+  {
+    content: 'Исследования на животных показывают увеличение продолжительности жизни на 30% при интервальном голодании.',
+    stance: Stance.FOR,
+    source: 'https://example.com/fasting-longevity',
+    strength: 8,
+  },
+  {
+    content: 'Интервальное голодание запускает аутофагию - процесс очистки клеток от поврежденных компонентов.',
+    stance: Stance.FOR,
+    source: 'https://example.com/fasting-autophagy',
+    strength: 9,
+  },
+  {
+    content: 'Голодание снижает уровень инсулина и IGF-1, что замедляет старение клеток.',
+    stance: Stance.FOR,
+    source: 'https://example.com/fasting-insulin-igf',
+    strength: 7,
+  },
+  {
+    content: 'Для большинства людей интервальное голодание не имеет значительных преимуществ перед обычным питанием.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/fasting-no-benefit',
+    strength: 6,
+  },
+  {
+    content: 'Голодание может привести к потере мышечной массы, особенно у пожилых людей.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/fasting-muscle-loss',
+    strength: 7,
+  },
+  {
+    content: 'Эффект голодания сильно зависит от индивидуальных особенностей метаболизма.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/fasting-individual-variation',
+    strength: 5,
+  },
+
+  // Теория 10: УБД станет необходимостью
+  {
+    content: 'Эксперимент в Финляндии показал улучшение психического здоровья при выплате УБД.',
+    stance: Stance.FOR,
+    source: 'https://example.com/finland-ubi',
+    strength: 8,
+  },
+  {
+    content: 'Автоматизация может лишить работы 40% населения, делая УБД социальной необходимостью.',
+    stance: Stance.FOR,
+    source: 'https://example.com/automation-ubi-necessity',
+    strength: 9,
+  },
+  {
+    content: 'УБД стимулирует предпринимательство, позволяя людям рисковать без угрозы голода.',
+    stance: Stance.FOR,
+    source: 'https://example.com/ubi-entrepreneurship',
+    strength: 7,
+  },
+  {
+    content: 'УБД приведет к инфляции, сводя на нет его положительные эффекты.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ubi-inflation',
+    strength: 6,
+  },
+  {
+    content: 'Система УБД слишком дорога для большинства стран - до 30% ВВП.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ubi-cost',
+    strength: 8,
+  },
+  {
+    content: 'УБД снижает мотивацию к труду, особенно в низкооплачиваемых секторах.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/ubi-work-motivation',
+    strength: 7,
+  },
+
+  // Теория 11: Онлайн-образование заменит традиционное
+  {
+    content: 'Coursera достигла 100 миллионов пользователей, что показывает растущий спрос на онлайн-обучение.',
+    stance: Stance.FOR,
+    source: 'https://example.com/coursera-growth',
+    strength: 8,
+  },
+  {
+    content: 'Онлайн-курсы из ведущих университетов доступны бесплатно, демократизируя образование.',
+    stance: Stance.FOR,
+    source: 'https://example.com/free-online-courses',
+    strength: 9,
+  },
+  {
+    content: 'AI-тьюторы могут персонализировать обучение для каждого студента, повышая эффективность.',
+    stance: Stance.FOR,
+    source: 'https://example.com/ai-tutors',
+    strength: 7,
+  },
+  {
+    content: 'Онлайн-курсы имеют высокий процент отсева - до 90% студентов не завершают обучение.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/online-dropout-rates',
+    strength: 8,
+  },
+  {
+    content: 'Социальные навыки и нетворкинг, приобретаемые в традиционных университетах, невозможно заменить онлайн.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/social-skills-education',
+    strength: 7,
+  },
+  {
+    content: 'Лабораторные работы и практические занятия требуют физического присутствия.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/hands-on-learning',
+    strength: 6,
+  },
+
+  // Теория 12: Метавселенная изменит социальные взаимодействия
+  {
+    content: 'Facebook инвестировал $10 миллиардов в развитие метавселенной.',
+    stance: Stance.FOR,
+    source: 'https://example.com/meta-investment',
+    strength: 8,
+  },
+  {
+    content: 'VR-встречи повышают вовлеченность на 30% по сравнению с видеозвонками.',
+    stance: Stance.FOR,
+    source: 'https://example.com/vr-meeting-engagement',
+    strength: 7,
+  },
+  {
+    content: 'Метавселенная создает новые возможности для удаленной работы и коллаборации.',
+    stance: Stance.FOR,
+    source: 'https://example.com/metaverse-remote-work',
+    strength: 6,
+  },
+  {
+    content: 'Текущие VR-технологии вызывают тошноту и усталость у 50% пользователей.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/vr-side-effects',
+    strength: 7,
+  },
+  {
+    content: 'Метавселенная усиливает социальную изоляцию и уменьшает реальные контакты.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/metaverse-isolation',
+    strength: 8,
+  },
+  {
+    content: 'Технологии метавселенной требуют дорогого оборудования, недоступного большинству людей.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/metaverse-cost-barrier',
+    strength: 6,
+  },
+];
+
+let evidenceIndex = 0;
+for (let i = 0; i < createdTheories.length; i++) {
+  const theory = createdTheories[i];
+  const authorId = createdUsers[i % createdUsers.length].id;
+  
+  for (let j = 0; j < 6; j++) {
+    if (evidenceIndex >= evidenceCards.length) break;
+    const evidenceData = evidenceCards[evidenceIndex];
+    
+    const card = await prisma.evidenceCard.create({
+      data: {
+        content: evidenceData.content,
+        source: evidenceData.source,
+        sourceTitle: `Источник ${evidenceIndex + 1}`,
+        context: 'Исследование или отчет',
+        stance: evidenceData.stance,
+        status: CardStatus.ACTIVE,
+        theoryId: theory.id,
+        authorId: authorId,
+      },
+    });
+
+    for (let k = 0; k < Math.min(3, createdUsers.length); k++) {
+      const voter = createdUsers[k];
+      const baseStrength = evidenceData.strength;
+      const variation = Math.floor(Math.random() * 3) - 1;
+      const strength = Math.max(1, Math.min(10, baseStrength + variation));
+      
+      await prisma.vote.create({
+        data: {
+          strength: strength,
+          userId: voter.id,
+          cardId: card.id,
+        },
+      });
+    }
+
+    evidenceIndex++;
+  }
+}
+
+console.log('✅ Сидирование успешно завершено!');
+console.log(`Создано:`);
+console.log(`- ${createdUsers.length} пользователей`);
+console.log(`- ${createdTheories.length} теорий`);
+console.log(`- ${evidenceIndex} доказательств с голосами`);
+console.log('');
+console.log('👤 Данные для входа:');
+createdUsers.forEach((user, index) => {
+  console.log(`${index + 1}. ${user.email} / ${usersData[index].password}`);
+});
+console.log('');
+} 
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
-    console.error('Full error:', e.stack);
+    console.error('❌ Ошибка сидирования:', e);
     process.exit(1);
   })
   .finally(async () => {

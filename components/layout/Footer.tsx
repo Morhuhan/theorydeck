@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t py-6 mt-auto">
+    <footer className="px-6 border-t py-6 mt-auto">
       <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
           © 2024 TheoryDeck. Все права защищены.
