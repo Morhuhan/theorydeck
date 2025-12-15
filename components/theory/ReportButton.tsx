@@ -14,7 +14,6 @@ interface ReportButtonProps {
   size?: "sm" | "default" | "lg" | "icon" | "icon-sm" | "icon-lg";
   className?: string;
   children?: ReactNode;
-  isAuthenticated?: boolean;
 }
 
 export function ReportButton({ 
@@ -24,23 +23,30 @@ export function ReportButton({
   variant = "ghost",
   size = "icon",
   className = "",
-  children,
-  isAuthenticated = false
+  children
 }: ReportButtonProps) {
   const router = useRouter();
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!isAuthenticated) {
+    try {
+      const response = await fetch("/api/auth/session");
+      const data = await response.json();
+      
+      if (!data.user) {
+        router.push("/login");
+        return;
+      }
+      
+      console.log(`Report ${targetType} ${targetId}`);
+      if (onReport) {
+        onReport(e);
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
       router.push("/login");
-      return;
-    }
-    
-    console.log(`Report ${targetType} ${targetId}`);
-    if (onReport) {
-      onReport(e);
     }
   };
 

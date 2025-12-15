@@ -31,7 +31,7 @@ export function AllEvidence({ forCards, againstCards, onAddCard, onVoteUpdate }:
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Все доказательства</h2>
+        <h2 className="text-xl font-semibold">Остальные доказательства</h2>
         {onAddCard && (
           <Button onClick={onAddCard}>
             <Plus className="h-4 w-4 mr-2" />
