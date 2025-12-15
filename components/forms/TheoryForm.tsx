@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { TagInput } from "@/components/ui/tag-input";
 
 const REALMS = [
   "Технологии",
@@ -29,21 +28,6 @@ export function TheoryForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim()) && tags.length < 5) {
-        setTags([...tags, tagInput.trim()]);
-      }
-      setTagInput("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -158,32 +142,13 @@ export function TheoryForm() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tags">Теги (до 5)</Label>
-            <Input
-              id="tags"
-              placeholder="Введите тег и нажмите Enter"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-            />
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="gap-1">
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          <TagInput
+            tags={tags}
+            onTagsChange={setTags}
+            maxTags={5}
+            placeholder="Введите тег и нажмите Enter"
+            helpText="Добавьте релевантные теги для поиска"
+          />
 
           <div className="flex gap-4 pt-4">
             <Button type="submit" disabled={isLoading}>

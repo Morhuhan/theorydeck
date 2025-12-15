@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <Hero />
-      <Separator />
+      <Separator className="my-8" />
       <section className="space-y-6">
         <TheoryList />
       </section>

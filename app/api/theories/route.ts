@@ -1,9 +1,9 @@
+// app/api/theories/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/auth-helpers";
 import { TheoryStatus } from "@prisma/client";
 
-// Функция для создания slug из заголовка
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -13,20 +13,21 @@ function generateSlug(title: string): string {
     .trim();
 }
 
-// GET /api/theories - получить список теорий
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const realm = searchParams.get("realm");
     const topic = searchParams.get("topic");
+    const search = searchParams.get("search");
+    const page = parseInt(searchParams.get("page") || "0");
+    const limit = parseInt(searchParams.get("limit") || "12");
 
     const where: any = {};
 
     if (status) {
       where.status = status as TheoryStatus;
     } else {
-      // По умолчанию показываем только активные теории
       where.status = TheoryStatus.ACTIVE;
     }
 
@@ -38,28 +39,63 @@ export async function GET(request: Request) {
       where.topic = topic;
     }
 
-    const theories = await prisma.theory.findMany({
-      where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    if (search) {
+      where.OR = [
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
           },
         },
-        _count: {
-          select: {
-            evidenceCards: true,
+        {
+          claim: {
+            contains: search,
+            mode: "insensitive",
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        {
+          tags: {
+            hasSome: [search],
+          },
+        },
+      ];
+    }
 
-    return NextResponse.json(theories);
+    const [theories, totalCount] = await Promise.all([
+      prisma.theory.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          _count: {
+            select: {
+              evidenceCards: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: page * limit,
+        take: limit + 1,
+      }),
+      prisma.theory.count({ where }),
+    ]);
+
+    const hasMore = theories.length > limit;
+    const theoriesToReturn = hasMore ? theories.slice(0, limit) : theories;
+
+    return NextResponse.json({
+      theories: theoriesToReturn,
+      hasMore,
+      totalCount,
+      page,
+    });
   } catch (error) {
     console.error("Error fetching theories:", error);
     return NextResponse.json(
@@ -69,7 +105,6 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/theories - создать новую теорию
 export async function POST(request: Request) {
   try {
     const user = await requireAuth();
@@ -83,15 +118,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Генерируем slug из заголовка
     let slug = generateSlug(title);
 
-    // Проверяем уникальность slug
     const existingTheory = await prisma.theory.findUnique({
       where: { slug },
     });
 
-    // Если slug уже существует, добавляем случайный суффикс
     if (existingTheory) {
       slug = `${slug}-${Math.random().toString(36).substring(2, 8)}`;
     }
