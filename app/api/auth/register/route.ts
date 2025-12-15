@@ -14,7 +14,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Проверяем существование пользователя
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Пароль должен быть не менее 6 символов" },
+        { status: 400 }
+      );
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -26,10 +32,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Создаем пользователя
     const user = await prisma.user.create({
       data: {
         email,
@@ -41,6 +45,7 @@ export async function POST(request: Request) {
         email: true,
         name: true,
         role: true,
+        createdAt: true,
       },
     });
 

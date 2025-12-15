@@ -6,11 +6,17 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String
+  password      String?
   emailVerified DateTime?
   role          UserRole  @default(USER)
   
@@ -26,12 +32,6 @@ model User {
   reports       Report[]
   
   @@index([email])
-}
-
-enum UserRole {
-  USER
-  MODERATOR
-  ADMIN
 }
 
 model Account {
@@ -51,6 +51,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -59,6 +60,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -94,6 +97,7 @@ model Theory {
   @@index([slug])
   @@index([status])
   @@index([realm, topic])
+  @@index([authorId])
 }
 
 enum TheoryStatus {
@@ -158,6 +162,7 @@ model Vote {
   
   @@unique([userId, cardId])
   @@index([cardId])
+  @@index([userId])
 }
 
 model Report {
@@ -182,6 +187,7 @@ model Report {
   @@index([status])
   @@index([theoryId])
   @@index([cardId])
+  @@index([reporterId])
 }
 
 enum ReportReason {

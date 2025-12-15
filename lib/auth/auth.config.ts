@@ -42,6 +42,17 @@ export const authConfig: NextAuthOptions = {
         };
       },
     }),
+    
+    /*
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    }),
+    */
   ],
   pages: {
     signIn: "/login",
@@ -50,19 +61,45 @@ export const authConfig: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as any;
+        session.user.email = token.email as string;
       }
       return session;
+    },
+    
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" || account?.provider === "github") {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          });
+
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name,
+                emailVerified: new Date(),
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error creating OAuth user:", error);
+          return false;
+        }
+      }
+      return true;
     },
   },
 };
