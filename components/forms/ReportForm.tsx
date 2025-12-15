@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ReportFormProps {
   open: boolean;
@@ -22,19 +24,49 @@ interface ReportFormProps {
 }
 
 const REPORT_REASONS = [
-  { value: "SPAM", label: "Спам" },
-  { value: "MISINFORMATION", label: "Дезинформация" },
-  { value: "INAPPROPRIATE", label: "Неприемлемый контент" },
-  { value: "SPOILER", label: "Спойлер" },
-  { value: "LEAK", label: "Утечка информации" },
-  { value: "DUPLICATE", label: "Дубликат" },
-  { value: "OTHER", label: "Другое" },
+  { 
+    value: "SPAM", 
+    label: "Спам",
+    description: "Нежелательный или рекламный контент"
+  },
+  { 
+    value: "MISINFORMATION", 
+    label: "Дезинформация",
+    description: "Ложная или вводящая в заблуждение информация"
+  },
+  { 
+    value: "INAPPROPRIATE", 
+    label: "Неприемлемый контент",
+    description: "Оскорбительный или неуместный материал"
+  },
+  { 
+    value: "SPOILER", 
+    label: "Спойлер",
+    description: "Раскрытие важных сюжетных деталей"
+  },
+  { 
+    value: "LEAK", 
+    label: "Утечка информации",
+    description: "Неавторизованное раскрытие конфиденциальной информации"
+  },
+  { 
+    value: "DUPLICATE", 
+    label: "Дубликат",
+    description: "Повторяющийся контент"
+  },
+  { 
+    value: "OTHER", 
+    label: "Другое",
+    description: "Иная причина"
+  },
 ];
 
 export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportFormProps) {
   const [reason, setReason] = useState<string>("");
   const [details, setDetails] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const targetLabels = {
     theory: "теорию",
@@ -46,6 +78,7 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
     if (!reason) return;
 
     setIsLoading(true);
+    setError(null);
 
     const reportData = {
       reason,
@@ -69,20 +102,33 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
         throw new Error(data.error || "Ошибка при отправке жалобы");
       }
 
+      setSuccess(true);
       setReason("");
       setDetails("");
-      onOpenChange(false);
-      alert("Жалоба успешно отправлена");
+      
+      // Закрыть диалог через 2 секунды
+      setTimeout(() => {
+        setSuccess(false);
+        onOpenChange(false);
+      }, 2000);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Произошла ошибка");
+      setError(error instanceof Error ? error.message : "Произошла ошибка");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setReason("");
+    setDetails("");
+    setError(null);
+    setSuccess(false);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Пожаловаться на {targetLabels[targetType]}</DialogTitle>
           <DialogDescription>
@@ -90,45 +136,94 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-3">
-            <Label>Причина жалобы *</Label>
-            <RadioGroup value={reason} onValueChange={setReason}>
-              {REPORT_REASONS.map((r) => (
-                <div key={r.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={r.value} id={r.value} />
-                  <Label htmlFor={r.value} className="cursor-pointer">
-                    {r.label}
-                  </Label>
+        {success ? (
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Жалоба успешно отправлена. Спасибо за помощь в модерации!
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-4">
+              <Label className="text-base">Причина жалобы *</Label>
+              <RadioGroup value={reason} onValueChange={setReason}>
+                <div className="space-y-3">
+                  {REPORT_REASONS.map((r) => (
+                    <div
+                      key={r.value}
+                      className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${
+                        reason === r.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => setReason(r.value)}
+                    >
+                      <RadioGroupItem 
+                        value={r.value} 
+                        id={r.value}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <Label 
+                          htmlFor={r.value} 
+                          className="cursor-pointer font-medium text-base"
+                        >
+                          {r.label}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          {r.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
+              </RadioGroup>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="details">Подробности</Label>
-            <Textarea
-              id="details"
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              placeholder="Дополнительная информация..."
-              rows={3}
-            />
-          </div>
+            <div className="space-y-3">
+              <Label htmlFor="details" className="text-base">
+                Подробности {reason === "OTHER" && "(обязательно для причины 'Другое')"}
+              </Label>
+              <Textarea
+                id="details"
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder="Опишите подробнее причину жалобы..."
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-sm text-muted-foreground">
+                Предоставьте дополнительную информацию, которая поможет модераторам
+                принять правильное решение.
+              </p>
+            </div>
 
-          <div className="flex gap-2 justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Отмена
-            </Button>
-            <Button type="submit" disabled={isLoading || !reason}>
-              {isLoading ? "Отправка..." : "Отправить жалобу"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Отмена
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !reason || (reason === "OTHER" && !details.trim())}
+              >
+                {isLoading ? "Отправка..." : "Отправить жалобу"}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

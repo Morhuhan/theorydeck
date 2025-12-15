@@ -50,7 +50,11 @@ export function EvidenceCard({
     ? "bg-green-500/5"
     : "bg-red-500/5";
 
-  const handleReportClick = () => {
+  const handleReportClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setIsReportModalOpen(true);
   };
 
@@ -77,11 +81,13 @@ export function EvidenceCard({
                 <span className="font-semibold">{safeAverageStrength.toFixed(1)}</span>
                 <span className="text-xs">/ 10</span>
               </div>
-              <ReportButton 
-                targetId={id}
-                targetType="EVIDENCE"
-                onReport={() => setIsReportModalOpen(true)}
-              />
+              <div onClick={handleReportClick}>
+                <ReportButton 
+                  targetId={id}
+                  targetType="EVIDENCE"
+                  onReport={handleReportClick}
+                />
+              </div>
             </div>
           </div>
         </CardHeader>

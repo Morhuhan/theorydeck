@@ -8,7 +8,7 @@ import { ReactNode } from "react";
 interface ReportButtonProps {
   targetId: string;
   targetType: "THEORY" | "EVIDENCE";
-  onReport?: () => void;
+  onReport?: (e: React.MouseEvent) => void;
   variant?: "ghost" | "outline" | "destructive" | "secondary" | "link";
   size?: "sm" | "default" | "lg" | "icon" | "icon-sm" | "icon-lg";
   className?: string;
@@ -24,9 +24,13 @@ export function ReportButton({
   className = "",
   children
 }: ReportButtonProps) {
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log(`Report ${targetType} ${targetId}`);
-    onReport?.();
+    if (onReport) {
+      onReport(e);
+    }
   };
 
   const buttonVariant = children ? "outline" : variant;

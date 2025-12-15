@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageSquare, User, BarChart } from "lucide-react";
 import { ReportButton } from "./ReportButton";
-import { ReportModal } from "@/components/reports/ReportModal";
+import { ReportForm } from "@/components/forms/ReportForm";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -42,9 +42,10 @@ export function TheoryCard({
 }: TheoryCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const handleReportSubmit = () => {
-    console.log(`Report submitted for theory ${id}`);
-    setIsReportModalOpen(false);
+  const handleReportClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsReportModalOpen(true);
   };
 
   return (
@@ -63,12 +64,14 @@ export function TheoryCard({
                   </p>
                 )}
               </div>
-              <ReportButton 
+              <div onClick={handleReportClick}>
+                <ReportButton 
                   targetId={id}
                   targetType="THEORY"
-                  onReport={() => setIsReportModalOpen(true)}
+                  onReport={handleReportClick}
                 />
               </div>
+            </div>
           </CardHeader>
           
           <CardContent className="space-y-4 flex-1">
@@ -115,13 +118,11 @@ export function TheoryCard({
         </Card>
       </Link>
 
-      <ReportModal
+      <ReportForm
         open={isReportModalOpen}
         onOpenChange={setIsReportModalOpen}
         targetId={id}
-        targetType="THEORY"
-        targetContent={title}
-        onReportSubmit={handleReportSubmit}
+        targetType="theory"
       />
     </>
   );
