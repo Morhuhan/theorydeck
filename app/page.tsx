@@ -1,7 +1,5 @@
 // app/page.tsx
-import { Hero } from "@/components/home/Hero";
 import { TheoryList } from "@/components/theory";
-import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   return (

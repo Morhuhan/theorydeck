@@ -117,7 +117,7 @@ export function TheoryList() {
   }, [hasMore, isLoading, isLoadingMore, page, debouncedSearch, loadTheories]);
 
   return (
-    <>
+    <div className="py-6">
       <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
       <Separator className="my-8" />
 
@@ -169,6 +169,6 @@ export function TheoryList() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }
