@@ -11,6 +11,7 @@ import { EvidenceForm } from "@/components/forms/EvidenceForm";
 import { ReportModal } from "@/components/reports/ReportModal";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { calculateVoteStats, filterCardsByStance, mapEvidenceCards } from "@/lib/utils/vote-stats";
 
 interface TheoryPageProps {
   slug: string;
@@ -74,8 +75,9 @@ export function TheoryPage({ slug }: TheoryPageProps) {
     );
   }
 
-  const forCards = theory.evidenceCards.filter((c: any) => c.stance === "FOR");
-  const againstCards = theory.evidenceCards.filter((c: any) => c.stance === "AGAINST");
+  const forCards = mapEvidenceCards(filterCardsByStance(theory.evidenceCards, "FOR"));
+  const againstCards = mapEvidenceCards(filterCardsByStance(theory.evidenceCards, "AGAINST"));
+  const voteStats = calculateVoteStats(theory.evidenceCards);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
@@ -90,8 +92,9 @@ export function TheoryPage({ slug }: TheoryPageProps) {
       <TheoryTLDR claim={theory.claim} tldr={theory.tldr} />
 
       <ConfidenceBar
-        forScore={forCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
-        againstScore={againstCards.reduce((sum: number, card: any) => sum + (card.voteStats?.averageStrength || 5), 0)}
+        forScore={voteStats.forScore}
+        againstScore={voteStats.againstScore}
+        totalVotes={voteStats.totalVotes}
       />
 
       <div className="grid md:grid-cols-2 gap-8">

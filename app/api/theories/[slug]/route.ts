@@ -7,7 +7,6 @@ interface RouteContext {
   params: Promise<{ slug: string }>;
 }
 
-// GET /api/theories/[slug] - получить теорию по slug
 export async function GET(
   request: Request,
   context: RouteContext

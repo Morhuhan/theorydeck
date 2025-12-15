@@ -1,9 +1,85 @@
 ﻿theorydeck/
 |-- app/
+  |-- (auth)/
+    |-- login/
+      |-- page.tsx
+    |-- register/
+      |-- page.tsx
+    |-- layout.tsx
+  |-- admin/
+    |-- users/
+      |-- page.tsx
+  |-- api/
+    |-- auth/
+      |-- register/
+        |-- route.ts
+      |-- [...nextauth]/
+    |-- evidence/
+      |-- route.ts
+    |-- reports/
+      |-- [id]/
+      |-- route.ts
+    |-- theories/
+      |-- [slug]/
+      |-- route.ts
+    |-- users/
+      |-- [id]/
+      |-- route.ts
+    |-- votes/
+      |-- route.ts
+  |-- moderation/
+    |-- reports/
+      |-- page.tsx
+  |-- theory/
+    |-- new/
+      |-- page.tsx
+    |-- [slug]/
   |-- favicon.ico
   |-- globals.css
+  |-- layout.tsx
   |-- page.tsx
 |-- components/
+  |-- admin/
+    |-- index.ts
+    |-- UsersManagement.tsx
+  |-- auth/
+    |-- index.ts
+    |-- LoginForm.tsx
+    |-- RegisterForm.tsx
+  |-- forms/
+    |-- EvidenceForm.tsx
+    |-- index.ts
+    |-- ReportForm.tsx
+    |-- TheoryForm.tsx
+    |-- VoteForm.tsx
+  |-- home/
+    |-- Hero.tsx
+    |-- index.ts
+  |-- layout/
+    |-- Footer.tsx
+    |-- index.ts
+    |-- Navbar.tsx
+  |-- moderation/
+    |-- index.ts
+    |-- ReportsModeration.tsx
+  |-- providers/
+    |-- SessionProvider.tsx
+  |-- reports/
+    |-- ReportModal.tsx
+  |-- theory/
+    |-- AllEvidence.tsx
+    |-- ConfidenceBar.tsx
+    |-- EvidenceCard.tsx
+    |-- index.ts
+    |-- ReportButton.tsx
+    |-- TheoryCard.tsx
+    |-- TheoryHeader.tsx
+    |-- TheoryList.tsx
+    |-- TheoryPage.tsx
+    |-- TheoryReportButton.tsx
+    |-- TheoryTLDR.tsx
+    |-- TopEvidence.tsx
+    |-- VoteStrength.tsx
   |-- ui/
     |-- alert.tsx
     |-- avatar.tsx
@@ -15,20 +91,28 @@
     |-- input.tsx
     |-- label.tsx
     |-- progress.tsx
+    |-- radio-group.tsx
     |-- select.tsx
     |-- separator.tsx
     |-- tabs.tsx
     |-- textarea.tsx
 |-- lib/
+  |-- auth/
+    |-- auth-helpers.ts
+    |-- auth.config.ts
+    |-- index.ts
+    |-- next-auth.d.ts
   |-- db/
     |-- prisma.ts
+  |-- utils.ts
 |-- .env
 |-- .gitignore
-|-- auth.ts
 |-- components.json
 |-- create-structure.ps1
 |-- eslint.config.mjs
 |-- generate-tree.ps1
+|-- middleware.ts
+|-- next-env.d.ts
 |-- next.config.ts
 |-- nextjs-auth-starter.png
 |-- package-lock.json

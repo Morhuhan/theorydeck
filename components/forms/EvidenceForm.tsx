@@ -50,10 +50,15 @@ export function EvidenceForm({ theoryId, open, onOpenChange, onSuccess }: Eviden
         throw new Error(data.error || "Ошибка при добавлении доказательства");
       }
 
-      onOpenChange(false);
-      onSuccess?.();
+      // Сначала сбрасываем форму и состояние, пока элемент еще в DOM
       e.currentTarget.reset();
       setStance("FOR");
+      
+      // Затем вызываем onSuccess для перезагрузки данных
+      onSuccess?.();
+      
+      // И только потом закрываем диалог
+      onOpenChange(false);
     } catch (error) {
       alert(error instanceof Error ? error.message : "Произошла ошибка");
     } finally {
