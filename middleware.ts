@@ -18,12 +18,6 @@ export default withAuth(
       }
     }
 
-    if (pathname.startsWith("/theory/new")) {
-      if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url));
-      }
-    }
-
     return NextResponse.next();
   },
   {
@@ -31,12 +25,8 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname;
 
-        if (
-          pathname === "/" ||
-          pathname.startsWith("/login") ||
-          pathname.startsWith("/register") ||
-          (pathname.startsWith("/theory/") && !pathname.startsWith("/theory/new"))
-        ) {
+        const publicPaths = ["/login", "/register", "/forgot-password"];
+        if (publicPaths.some((path) => pathname.startsWith(path))) {
           return true;
         }
 
@@ -47,9 +37,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/moderation/:path*",
-    "/theory/new",
-  ],
+  matcher: ["/admin/:path*", "/moderation/:path*", "/theory/new", "/profile/:path*"],
 };
