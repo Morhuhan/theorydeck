@@ -7,7 +7,7 @@ import { ExternalLink, ThumbsUp, Flag } from "lucide-react";
 import { VoteStrength } from "./VoteStrength";
 import { ReportButton } from "./ReportButton";
 import { useState } from "react";
-import { ReportModal } from "@/components/reports/ReportModal";
+import { ReportForm } from "../forms";
 
 export type Stance = "FOR" | "AGAINST";
 
@@ -128,13 +128,11 @@ export function EvidenceCard({
         </CardFooter>
       </Card>
 
-      <ReportModal
+      <ReportForm
         open={isReportModalOpen}
         onOpenChange={setIsReportModalOpen}
         targetId={id}
-        targetType="EVIDENCE"
-        targetContent={content}
-        onReportSubmit={handleReportSubmit}
+        targetType="card"
       />
     </>
   );
