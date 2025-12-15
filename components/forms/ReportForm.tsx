@@ -1,7 +1,7 @@
 // components/forms/ReportForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,8 +12,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ReportFormProps {
@@ -66,7 +67,7 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
   const [details, setDetails] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const targetLabels = {
     theory: "теорию",
@@ -102,15 +103,13 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
         throw new Error(data.error || "Ошибка при отправке жалобы");
       }
 
-      setSuccess(true);
+      if (formRef.current) {
+        formRef.current.reset();
+      }
       setReason("");
       setDetails("");
       
-      // Закрыть диалог через 2 секунды
-      setTimeout(() => {
-        setSuccess(false);
-        onOpenChange(false);
-      }, 2000);
+      onOpenChange(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Произошла ошибка");
     } finally {
@@ -118,33 +117,32 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
     }
   };
 
-  const handleClose = () => {
-    setReason("");
-    setDetails("");
-    setError(null);
-    setSuccess(false);
-    onOpenChange(false);
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    if (!newOpen) {
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.reset();
+        }
+        setReason("");
+        setDetails("");
+        setError(null);
+      }, 200);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle>Пожаловаться на {targetLabels[targetType]}</DialogTitle>
           <DialogDescription>
             Опишите причину жалобы. Модераторы рассмотрят её в ближайшее время.
           </DialogDescription>
         </DialogHeader>
 
-        {success ? (
-          <Alert className="bg-green-50 border-green-200">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Жалоба успешно отправлена. Спасибо за помощь в модерации!
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -194,6 +192,7 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
               </Label>
               <Textarea
                 id="details"
+                name="details"
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Опишите подробнее причину жалобы..."
@@ -205,25 +204,25 @@ export function ReportForm({ open, onOpenChange, targetType, targetId }: ReportF
                 принять правильное решение.
               </p>
             </div>
+          </div>
 
-            <div className="flex gap-3 justify-end pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isLoading}
-              >
-                Отмена
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isLoading || !reason || (reason === "OTHER" && !details.trim())}
-              >
-                {isLoading ? "Отправка..." : "Отправить жалобу"}
-              </Button>
-            </div>
-          </form>
-        )}
+          <DialogFooter className="px-6 py-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !reason || (reason === "OTHER" && !details.trim())}
+            >
+              {isLoading ? "Отправка..." : "Отправить жалобу"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
