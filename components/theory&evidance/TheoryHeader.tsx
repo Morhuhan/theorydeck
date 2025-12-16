@@ -33,7 +33,7 @@ export function TheoryHeader({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2 flex-1 min-w-0">
-          <h1 className="text-3xl md:text-4xl font-bold break-words">{title}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">{title}</h1>
           {realm && topic && (
             <p className="text-lg text-muted-foreground">
               {realm} • {topic}

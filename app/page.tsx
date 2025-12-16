@@ -1,10 +1,8 @@
 // app/page.tsx
-import { TheoryList } from "@/components/theory";
+import { TheoryList } from "@/components/theory&evidance";
 
 export default function Home() {
   return (
-    <div className="space-y-8">
-      <TheoryList />
-    </div>
+    <TheoryList />
   );
 }

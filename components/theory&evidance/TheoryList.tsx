@@ -4,7 +4,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { TheoryCard } from "./TheoryCard";
 import { Hero } from "@/components/home/Hero";
-import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
@@ -117,58 +116,65 @@ export function TheoryList() {
   }, [hasMore, isLoading, isLoadingMore, page, debouncedSearch, loadTheories]);
 
   return (
-    <div className="py-6">
+    <div className="min-h-screen bg-[#f5f6f8] dark:bg-gray-900">
       <Hero onSearch={setSearchQuery} searchQuery={searchQuery} />
-      <Separator className="my-8" />
 
-      {isLoading && theories.length === 0 ? (
-        <div className="mb-8 text-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="text-muted-foreground mt-4">Загрузка теорий...</p>
-        </div>
-      ) : error ? (
-        <div className="mb-8 text-center py-12">
-          <p className="text-red-600">{error}</p>
-        </div>
-      ) : theories.length === 0 ? (
-        <div className="mb-8 text-center py-12">
-          <p className="text-muted-foreground">
-            {searchQuery 
-              ? `Теорий по запросу "${searchQuery}" не найдено`
-              : "Пока нет теорий. Создайте первую!"
-            }
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr max-w-8xl mx-auto">
-            {theories.map((theory) => (
-              <TheoryCard
-                key={theory.id}
-                id={theory.id}
-                slug={theory.slug}
-                title={theory.title}
-                claim={theory.claim}
-                tldr={theory.tldr}
-                realm={theory.realm || undefined}
-                topic={theory.topic || undefined}
-                tags={theory.tags}
-                status={theory.status as any}
-                createdAt={new Date(theory.createdAt)}
-                authorName={theory.author.name || theory.author.email || "Аноним"}
-                evidenceCount={theory._count.evidenceCards}
-                forPercent={theory.voteStats?.forPercent ?? undefined}
-              />
-            ))}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {isLoading && theories.length === 0 ? (
+          <div className="text-center py-20">
+            <Loader2 className="h-10 w-10 animate-spin mx-auto text-[#0079bf]" />
+            <p className="text-gray-600 dark:text-gray-400 mt-4 text-sm">Загрузка теорий...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+          </div>
+        ) : theories.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
+              {searchQuery 
+                ? `Теорий по запросу "${searchQuery}" не найдено`
+                : "Пока нет теорий. Создайте первую!"
+              }
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {theories.map((theory) => (
+                <TheoryCard
+                  key={theory.id}
+                  id={theory.id}
+                  slug={theory.slug}
+                  title={theory.title}
+                  claim={theory.claim}
+                  tldr={theory.tldr}
+                  realm={theory.realm || undefined}
+                  topic={theory.topic || undefined}
+                  tags={theory.tags}
+                  status={theory.status as any}
+                  createdAt={new Date(theory.createdAt)}
+                  authorName={theory.author.name || theory.author.email || "Аноним"}
+                  evidenceCount={theory._count.evidenceCards}
+                  forPercent={theory.voteStats?.forPercent ?? undefined}
+                />
+              ))}
+            </div>
 
-          <div ref={observerTarget} className="h-20 flex items-center justify-center">
-            {isLoadingMore && (
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            )}
-          </div>
-        </>
-      )}
+            <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
+              {isLoadingMore && (
+                <Loader2 className="h-6 w-6 animate-spin text-[#0079bf]" />
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -25,20 +25,15 @@ interface TopEvidenceProps {
 }
 
 export function TopEvidence({ title, stance, cards, onVoteUpdate }: TopEvidenceProps) {
+  if (cards.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {cards.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">
-          Нет карточек
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {cards.map((card) => (
-            <EvidenceCard key={card.id} {...card} onVoteUpdate={onVoteUpdate} />
-          ))}
-        </div>
-      )}
+    <div className="space-y-3">
+      {cards.map((card) => (
+        <EvidenceCard key={card.id} {...card} onVoteUpdate={onVoteUpdate} />
+      ))}
     </div>
   );
 }

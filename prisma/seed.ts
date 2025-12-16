@@ -627,40 +627,52 @@ const evidenceCards = [
 
   // Теория 12: Метавселенная изменит социальные взаимодействия
   {
-    content: 'Facebook инвестировал $10 миллиардов в развитие метавселенной.',
+    content: 'Цифровые аватары позволяют людям с инвалидностью участвовать в социальных активностях без физических ограничений.',
     stance: Stance.FOR,
-    source: 'https://example.com/meta-investment',
+    source: 'https://example.com/avatars-accessibility',
+    strength: 9,
+  },
+  {
+    content: 'Метавселенные как Decentraland и Sandbox уже проводят виртуальные свадьбы, концерты и деловые конференции.',
+    stance: Stance.FOR,
+    source: 'https://example.com/metaverse-events',
     strength: 8,
   },
   {
-    content: 'VR-встречи повышают вовлеченность на 30% по сравнению с видеозвонками.',
+    content: 'Исследование Стэнфорда показывает, что VR-взаимодействия активируют те же нейронные пути, что и реальные социальные контакты.',
     stance: Stance.FOR,
-    source: 'https://example.com/vr-meeting-engagement',
+    source: 'https://example.com/vr-neural-pathways',
     strength: 7,
   },
   {
-    content: 'Метавселенная создает новые возможности для удаленной работы и коллаборации.',
+    content: 'Метавселенная создает новые формы искусства и самовыражения через цифровую моду и архитектуру.',
     stance: Stance.FOR,
-    source: 'https://example.com/metaverse-remote-work',
+    source: 'https://example.com/metaverse-art-expression',
     strength: 6,
   },
   {
-    content: 'Текущие VR-технологии вызывают тошноту и усталость у 50% пользователей.',
+    content: 'Дети, выросшие в метавселенных, могут испытывать трудности с распознаванием реальных эмоций и невербальных сигналов.',
     stance: Stance.AGAINST,
-    source: 'https://example.com/vr-side-effects',
-    strength: 7,
-  },
-  {
-    content: 'Метавселенная усиливает социальную изоляцию и уменьшает реальные контакты.',
-    stance: Stance.AGAINST,
-    source: 'https://example.com/metaverse-isolation',
+    source: 'https://example.com/metaverse-emotional-development',
     strength: 8,
   },
   {
-    content: 'Технологии метавселенной требуют дорогого оборудования, недоступного большинству людей.',
+    content: 'Кибербуллинг в метавселенных может быть более травматичным из-за иммерсивности и чувства присутствия.',
     stance: Stance.AGAINST,
-    source: 'https://example.com/metaverse-cost-barrier',
+    source: 'https://example.com/metaverse-cyberbullying',
+    strength: 7,
+  },
+  {
+    content: 'Виртуальные отношения создают иллюзию близости без реальной ответственности и обязательств.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/virtual-relationships-illusion',
     strength: 6,
+  },
+  {
+    content: 'Метавселенная усиливает цифровое неравенство - у бедных слоев населения нет доступа к необходимому оборудованию.',
+    stance: Stance.AGAINST,
+    source: 'https://example.com/metaverse-digital-divide',
+    strength: 9,
   },
 ];
 
@@ -669,7 +681,9 @@ for (let i = 0; i < createdTheories.length; i++) {
   const theory = createdTheories[i];
   const authorId = createdUsers[i % createdUsers.length].id;
   
-  for (let j = 0; j < 6; j++) {
+  const cardsForThisTheory = i === 11 ? 14 : 6;
+  
+  for (let j = 0; j < cardsForThisTheory; j++) {
     if (evidenceIndex >= evidenceCards.length) break;
     const evidenceData = evidenceCards[evidenceIndex];
     

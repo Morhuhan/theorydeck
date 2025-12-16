@@ -1,4 +1,4 @@
-import { TheoryPage } from "@/components/theory/TheoryPage";
+import { TheoryPage } from "@/components/theory&evidance/TheoryPage";
 
 interface TheoryPageProps {
   params: Promise<{

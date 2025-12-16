@@ -14,7 +14,7 @@ $appDirs = @(
     "app\api\theories\[id]",
     "app\api\evidence-cards\[id]\vote",
     "app\api\comments\[id]",
-    "app\api\reports\[id]"
+    "app\api\reports\[id]"ы
 )
 
 foreach ($dir in $appDirs) {
