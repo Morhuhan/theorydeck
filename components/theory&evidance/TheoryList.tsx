@@ -27,7 +27,7 @@ interface Theory {
     evidenceCards: number;
   };
   voteStats?: {
-    forPercent: number;
+    forPercent: number | null;
   };
 }
 
@@ -162,7 +162,7 @@ export function TheoryList() {
                   createdAt={new Date(theory.createdAt)}
                   authorName={theory.author.name || theory.author.email || "Аноним"}
                   evidenceCount={theory._count.evidenceCards}
-                  forPercent={theory.voteStats?.forPercent ?? undefined}
+                  forPercent={theory.voteStats?.forPercent ?? null}
                 />
               ))}
             </div>

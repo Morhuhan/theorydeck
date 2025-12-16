@@ -1,3 +1,4 @@
+// app/api/theories/[slug]/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth/auth-helpers";
@@ -62,10 +63,8 @@ export async function GET(
       );
     }
 
-    // Получаем текущего пользователя для проверки голосов
     const user = await getCurrentUser();
 
-    // Подсчитываем статистику по голосам для каждой карточки
     const evidenceCardsWithStats = theory.evidenceCards.map((card) => {
       const totalVotes = card.votes.length;
       const averageStrength = totalVotes > 0
@@ -78,7 +77,7 @@ export async function GET(
 
       return {
         ...card,
-        votes: undefined, // Убираем полный список голосов
+        votes: undefined,
         voteStats: {
           count: totalVotes,
           averageStrength: Math.round(averageStrength * 10) / 10,
@@ -87,9 +86,42 @@ export async function GET(
       };
     });
 
+    const forCards = evidenceCardsWithStats.filter((c) => c.stance === "FOR");
+    const againstCards = evidenceCardsWithStats.filter((c) => c.stance === "AGAINST");
+
+    const forScore = forCards.reduce((sum, card) => {
+      if (card.voteStats.count > 0) {
+        return sum + (card.voteStats.averageStrength * card.voteStats.count);
+      }
+      return sum;
+    }, 0);
+
+    const againstScore = againstCards.reduce((sum, card) => {
+      if (card.voteStats.count > 0) {
+        return sum + (card.voteStats.averageStrength * card.voteStats.count);
+      }
+      return sum;
+    }, 0);
+
+    const totalVotes = evidenceCardsWithStats.reduce(
+      (sum, card) => sum + card.voteStats.count,
+      0
+    );
+
+    const total = forScore + againstScore;
+    const forPercent = total > 0 ? Math.round((forScore / total) * 100) : 50;
+    const againstPercent = total > 0 ? 100 - forPercent : 50;
+
     return NextResponse.json({
       ...theory,
       evidenceCards: evidenceCardsWithStats,
+      voteStats: {
+        forScore,
+        againstScore,
+        totalVotes,
+        forPercent,
+        againstPercent,
+      },
     });
   } catch (error) {
     console.error("Error fetching theory:", error);

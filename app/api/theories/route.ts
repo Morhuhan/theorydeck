@@ -100,20 +100,37 @@ export async function GET(request: Request) {
 
     // Подсчитываем статистику голосов для каждой теории
     const theoriesWithStats = theoriesToReturn.map((theory) => {
-      let totalVotes = 0;
-      let totalStrength = 0;
+      // Разделяем карточки по stance
+      const forCards = theory.evidenceCards.filter((c) => c.stance === "FOR");
+      const againstCards = theory.evidenceCards.filter((c) => c.stance === "AGAINST");
 
-      theory.evidenceCards.forEach((card) => {
-        card.votes.forEach((vote) => {
-          totalVotes++;
-          totalStrength += vote.strength;
-        });
+      // Считаем score для карточек "ЗА"
+      let forScore = 0;
+      let forVoteCount = 0;
+      forCards.forEach((card) => {
+        if (card.votes.length > 0) {
+          const cardAverage = card.votes.reduce((sum, vote) => sum + vote.strength, 0) / card.votes.length;
+          forScore += cardAverage * card.votes.length;
+          forVoteCount += card.votes.length;
+        }
       });
 
-      const averageStrength = totalVotes > 0 ? totalStrength / totalVotes : 0;
-      // Конвертируем среднюю силу голоса (-10 до +10) в процент (0% до 100%)
-      // -10 = 0%, 0 = 50%, +10 = 100%
-      const forPercent = ((averageStrength + 10) / 20) * 100;
+      // Считаем score для карточек "ПРОТИВ"
+      let againstScore = 0;
+      let againstVoteCount = 0;
+      againstCards.forEach((card) => {
+        if (card.votes.length > 0) {
+          const cardAverage = card.votes.reduce((sum, vote) => sum + vote.strength, 0) / card.votes.length;
+          againstScore += cardAverage * card.votes.length;
+          againstVoteCount += card.votes.length;
+        }
+      });
+
+      const totalVotes = forVoteCount + againstVoteCount;
+      const totalScore = forScore + againstScore;
+
+      // Рассчитываем процент "ЗА"
+      const forPercent = totalScore > 0 ? Math.round((forScore / totalScore) * 100) : 50;
 
       return {
         id: theory.id,

@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MessageSquare, User, TrendingUp } from "lucide-react";
+import { Calendar, MessageSquare, User, TrendingUp, TrendingDown } from "lucide-react";
 import { ReportButton } from "./ReportButton";
 import { ReportForm } from "@/components/forms/ReportForm";
 import { useState } from "react";
@@ -22,7 +22,7 @@ interface TheoryCardProps {
   createdAt: Date;
   authorName?: string;
   evidenceCount?: number;
-  forPercent?: number;
+  forPercent?: number | null;
 }
 
 export function TheoryCard({
@@ -38,7 +38,7 @@ export function TheoryCard({
   createdAt,
   authorName,
   evidenceCount = 0,
-  forPercent = undefined,
+  forPercent = null,
 }: TheoryCardProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -48,6 +48,26 @@ export function TheoryCard({
     e.stopPropagation();
     setIsReportModalOpen(true);
   };
+
+  const getVoteStyle = (percent: number) => {
+    if (percent >= 50) {
+      return {
+        icon: TrendingUp,
+        bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+        textColor: "text-emerald-700 dark:text-emerald-400",
+      };
+    } else {
+      return {
+        icon: TrendingDown,
+        bgColor: "bg-red-50 dark:bg-red-900/20",
+        textColor: "text-red-700 dark:text-red-400",
+      };
+    }
+  };
+
+  const voteStyle = forPercent !== null && forPercent !== undefined 
+    ? getVoteStyle(forPercent) 
+    : null;
 
   return (
     <>
@@ -157,9 +177,9 @@ export function TheoryCard({
                 </div>
               </div>
               
-              {forPercent !== undefined && (
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 transition-all duration-300">
-                  <TrendingUp className="h-3.5 w-3.5" />
+              {voteStyle && forPercent !== null && (
+                <div className={`flex items-center gap-1.5 px-2 py-1 rounded ${voteStyle.bgColor} ${voteStyle.textColor} transition-all duration-300`}>
+                  <voteStyle.icon className="h-3.5 w-3.5" />
                   <span className="font-bold">
                     {Math.round(forPercent)}%
                   </span>
